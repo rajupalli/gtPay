@@ -53,7 +53,6 @@ export default function RootLayout({
           )}
         >
           <Providers themeProps={{ attribute: "class", defaultTheme: "light" }}>
-              <Navbar />
               {isDashboard && <Sidebar />}
               <main className="container mx-auto max-w-full flex-grow">
                 {children}

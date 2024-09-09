@@ -21,7 +21,9 @@ module.exports = {
         grey: '#505050',
         blue: '#1B2559',
         stocksRed: '#D31812',
-        stocksGreen: '#289317'
+        stocksGreen: '#289317',
+        adminGrey: '#A6A6A6',
+        paymentGrey: '#7D7D7D'
       },
       backgroundImage: {
         'custom-gradient': 'linear-gradient(135deg, #FFA500, #000000)',

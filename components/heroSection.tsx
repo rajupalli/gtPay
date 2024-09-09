@@ -2,13 +2,54 @@
 
 import { Input } from "@nextui-org/input";
 import React, { useEffect, useState } from "react";
+import { FiCopy } from "react-icons/fi";
 
 export default function HeroSection() {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
-    const [timeRemaining, setTimeRemaining] = useState(120);
+    const [timeRemaining, setTimeRemaining] = useState(180);
     const [amount, setAmount] = useState("");
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [showAlert, setShowAlert] = useState(false);
+    const [utr, setUtr] = useState("");
+    const [upiId, setUpiId] = useState("");
+    const [bankDetails, setBankDetails] = useState({
+        name: "",
+        accountNo: "",
+        ifsc: "",
+        bankName: "",
+        qrCodeUrl: "",
+    });
+
+    useEffect(() => {
+        const fetchBankDetails = async () => {
+            try {
+                const response = await fetch('/api/bank');
+                const data = await response.json();
+
+                console.log(data);
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const bankInfo = data[0];
+
+                    if (bankInfo) {
+                        setUpiId(bankInfo.upiId);
+                        setBankDetails({
+                            name: bankInfo.beneficiaryName,
+                            accountNo: bankInfo.accountNo,
+                            ifsc: bankInfo.ifscCode,
+                            bankName: bankInfo.bankName,
+                            qrCodeUrl: bankInfo.qrCode,
+                        });
+                    }
+                } else {
+                    console.error("Bank details are not in the expected format.");
+                }
+            } catch (error) {
+                console.error("Error fetching bank details:", error);
+            }
+        };
+
+        fetchBankDetails();
+    }, []);
+
 
     useEffect(() => {
         if (timeRemaining > 0) {
@@ -16,9 +57,14 @@ export default function HeroSection() {
                 setTimeRemaining(timeRemaining - 1);
             }, 1000);
 
-            return () => clearInterval(timer); // Cleanup the interval on component unmount
+            return () => clearInterval(timer);
         }
     }, [timeRemaining]);
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        alert(`${text} copied to clipboard!`);
+    };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -28,11 +74,21 @@ export default function HeroSection() {
         }
     };
 
+    const handleUtrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Allow only 12 digits in the UTR field
+        if (/^\d{0,12}$/.test(value)) {
+            setUtr(value);
+        }
+    };
+
     const handleSubmit = () => {
-        if (!isAuthenticated) {
-            setShowAlert(true);
+
+        if (utr.length !== 12) {
+            alert("Transaction reference number (UTR) must be exactly 12 digits.");
             return;
         }
+
     };
 
     const renderContent = () => {
@@ -42,25 +98,39 @@ export default function HeroSection() {
                     <div>
                         <div className="flex justify-center items-center mt-10">
                             <img
-                                src="/qrcode.png"
+                                src={bankDetails.qrCodeUrl || "/qrcode.png"}
                                 alt="QR Code"
                                 className="w-100 h-100 md:w-40 md:h-40 object-cover"
                             />
                         </div>
 
                         <div className="flex flex-col gap-4 mt-10">
-                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-                                <Input
-                                    type="text"
-                                    label="UPI"
-                                    className="bg-white border-1 border-black rounded-xl"
-                                />
+                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative">
+                                <div className="w-full relative bg-gray-200 border border-black rounded-xl">
+                                    <Input
+                                        type="text"
+                                        label="UPI"
+                                        value={upiId}
+                                        className="w-full text-right text-xl bg-transparent rounded-xl"
+                                        readOnly
+                                        style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                                    />
+                                    <button
+                                        onClick={() => handleCopy(upiId)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+                                        aria-label="Copy UPI ID"
+                                    >
+                                        <FiCopy className="text-lg" />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
                                 <Input
                                     type="text"
                                     label="Enter Transaction refence number (UTR)"
+                                    value={utr}
+                                    onChange={handleUtrChange}
                                     className="bg-white border-1 border-black rounded-xl"
                                 />
                             </div>
@@ -82,43 +152,93 @@ export default function HeroSection() {
                 return (
                     <div>
                         <div className="flex flex-col gap-4 mt-10">
-                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-                                <Input
-                                    type="name"
-                                    label="Name"
-                                    className="bg-white border-1 border-black rounded-xl"
-                                />
+                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative">
+                                <div className="w-full relative bg-gray-200 border border-black rounded-xl">
+                                    <Input
+                                        type="text"
+                                        label="Name"
+                                        value={bankDetails.name}
+                                        className="w-full text-right text-xl bg-transparent rounded-xl"
+                                        readOnly
+                                        style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                                    />
+                                    <button
+                                        onClick={() => handleCopy(bankDetails.name)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+                                        aria-label="Copy Name"
+                                    >
+                                        <FiCopy className="text-lg" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-                                <Input
-                                    type="text"
-                                    label="Account No"
-                                    className="bg-white border-1 border-black rounded-xl"
-                                />
+                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative">
+                                <div className="w-full relative bg-gray-200 border border-black rounded-xl">
+                                    <Input
+                                        type="text"
+                                        label="Account No"
+                                        value={bankDetails.accountNo}
+                                        className="w-full text-right text-xl bg-transparent rounded-xl"
+                                        readOnly
+                                        style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                                    />
+                                    <button
+                                        onClick={() => handleCopy(bankDetails.accountNo)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+                                        aria-label="Copy Account No"
+                                    >
+                                        <FiCopy className="text-lg" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-                                <Input
-                                    type="text"
-                                    label="IFSC Code"
-                                    className="bg-white border-1 border-black rounded-xl"
-                                />
+                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative">
+                                <div className="w-full relative bg-gray-200 border border-black rounded-xl">
+                                    <Input
+                                        type="text"
+                                        label="IFSC Code"
+                                        value={bankDetails.ifsc}
+                                        className="w-full text-right text-xl bg-transparent rounded-xl"
+                                        readOnly
+                                        style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                                    />
+                                    <button
+                                        onClick={() => handleCopy(bankDetails.ifsc)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+                                        aria-label="Copy IFSC Code"
+                                    >
+                                        <FiCopy className="text-lg" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-                                <Input
-                                    type="text"
-                                    label="Bank Name"
-                                    className="bg-white border-1 border-black rounded-xl"
-                                />
+                            <div className="flex w-full flex-wrap md:flex-nowrap gap-4 relative">
+                                <div className="w-full relative bg-gray-200 border border-black rounded-xl">
+                                    <Input
+                                        type="text"
+                                        label="Bank Name"
+                                        value={bankDetails.bankName}
+                                        className="w-full text-right text-xl bg-transparent rounded-xl"
+                                        readOnly
+                                        style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                                    />
+                                    <button
+                                        onClick={() => handleCopy(bankDetails.bankName)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700"
+                                        aria-label="Copy Bank Name"
+                                    >
+                                        <FiCopy className="text-lg" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <div className="flex w-full flex-wrap md:flex-nowrap gap-4 mt-20">
                             <Input
                                 type="text"
-                                label="Enter Transaction refence number (UTR)"
+                                label="Enter Transaction reference number (UTR)"
+                                value={utr}
+                                onChange={handleUtrChange}
                                 className="bg-white border-1 border-black rounded-xl"
                             />
                         </div>
@@ -150,34 +270,13 @@ export default function HeroSection() {
                         value={amount}
                         onChange={handleAmountChange}
                         placeholder="Amount (Rs)"
-                        min="0" 
+                        min="0"
                         className="text-greenText text-base md:text-xl lg:text-xl font-bold w-full md:w-3/4 lg:w-1/2 bg-white border border-black rounded-xl px-4 py-2 placeholder-greenText"
                     />
                     <h2 className="text-xs md:text-sm text-black font-bold text-center">
                         Time Remaining: <span className="text-red-600 text-xl md:text-2xl">{timeRemaining}</span>
                     </h2>
                 </div>
-
-                {showAlert && (
-                    <div className="bg-red-500 text-white px-4 py-3 rounded relative mb-4" role="alert">
-                        <strong className="font-bold">Please log in!</strong>
-                        <span className="block sm:inline"> You need to be logged in to submit the form.</span>
-                        <span
-                            className="absolute top-0 bottom-0 right-0 px-4 py-3"
-                            onClick={() => setShowAlert(false)}
-                        >
-                            <svg
-                                className="fill-current h-6 w-6 text-white"
-                                role="button"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                            >
-                                <title>Close</title>
-                                <path d="M14.348 5.652a1 1 0 010 1.415L11.415 10l2.933 2.933a1 1 0 11-1.415 1.415L10 11.415l-2.933 2.933a1 1 0 11-1.415-1.415L8.585 10 5.652 7.067a1 1 0 011.415-1.415L10 8.585l2.933-2.933a1 1 0 011.415 0z" />
-                            </svg>
-                        </span>
-                    </div>
-                )}
 
                 {/* Buttons to toggle content */}
                 <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mb-4">

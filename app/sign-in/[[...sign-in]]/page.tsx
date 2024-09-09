@@ -13,7 +13,7 @@ export default function Page() {
 
       {/* Right Section for Sign-In Form */}
       <div className="flex-1 flex items-center justify-center bg-custom-gradient p-6  w-full md:w-1/2 h-screen md:h-auto">
-        <SignIn />
+        <SignIn  />
       </div>
     </div>
   );
