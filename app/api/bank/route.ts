@@ -1,45 +1,117 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { connectToDatabase } from '@/lib/dbConnect';
-import BankDetails from '@/model/BankDetails';
-import { bankSchema } from '@/schemas/BankDetailsSchema';
+import BankModel from '@/model/BankDetails';
+import { BankDetailsType } from '@/schemas/BankDetailsSchema';
 
-export async function GET() {
+export interface RequestBody {
+  beneficiaryName: string;
+  accountNo: string;
+  IFSCcode: string;
+  bankName: string;
+  dailyLimit: string;
+  activeDays: string[];
+  activeMonths: string[];
+  isActive: boolean;
+}
+
+interface updateRequestBody extends RequestBody {
+  bankID:string;
+}
+
+// create
+export async function POST(request: NextRequest, response: NextResponse) {
+  try {
+
+    await connectToDatabase();
+
+
+
+    const { beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive } = await request.json() as BankDetailsType;
+
+    console.log("Request body:", {
+      beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive
+    });
+
+    // Create new bank detail
+    const newBankDetail = await BankModel.create({
+      beneficiaryName,
+      accountNo,
+      IFSCcode,
+      bankName,
+      dailyLimit,
+      activeDays,
+      activeMonths,
+      isActive
+    });
+
+
+
+    return NextResponse.json({ message: 'Bank details saved', data: newBankDetail }, { status: 200 });
+
+  } catch (error: any) {
+    console.error("Error in POST /bank-details:", error);
+    return NextResponse.json({ message: 'Error saving bank details', error: error.message }, { status: 500 });
+  }
+}
+
+// read
+export async function GET(request: NextRequest, response: NextResponse) {
   try {
     await connectToDatabase();
-    const bankDetails = await BankDetails.find();
-    return NextResponse.json(bankDetails);
+    const bankDetails = await BankModel.find();
+
+    return NextResponse.json({ message: 'Bank details fetched', data: bankDetails }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error fetching bank details' }, { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
+// update
+export async function PUT(request: NextRequest, response: NextResponse) {
   try {
-    const data = await request.json();
-    const parsedData = bankSchema.parse(data);
+    await connectToDatabase()
+    const { bankID, beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive } = await request.json() as updateRequestBody
 
-    if (parsedData.upiId !== parsedData.upiIdConfirm) {
-      return NextResponse.json({ message: 'UPI IDs do not match' }, { status: 400 });
+    const updatedBankDetails = await BankModel.findByIdAndUpdate(bankID, {
+      beneficiaryName,
+      accountNo,
+      IFSCcode,
+      bankName,
+      dailyLimit,
+      activeDays,
+      activeMonths,
+      isActive
+    }, { new: true })
+
+    if (!updatedBankDetails) {
+      return NextResponse.json({ message: 'Bank details not updated' }, { status: 400 });
     }
 
-    if (parsedData.accountNo !== parsedData.accountNoConfirm) {
-      return NextResponse.json({ message: 'Account numbers do not match' }, { status: 400 });
-    }
+    return NextResponse.json({ message: 'Bank details updated', data: updatedBankDetails }, { status: 200 });
 
-    if (!['QR/UPI Pay', 'Bank Transfer'].includes(parsedData.paymentType)) {
-      return NextResponse.json({ message: 'Invalid payment type' }, { status: 400 });
-    }
-
-    await connectToDatabase();
-    const bankDetail = new BankDetails({
-      ...parsedData,
-      isActive: true,
-    });
-
-    await bankDetail.save();
-
-    return NextResponse.json({ message: 'Bank details saved successfully', data: bankDetail });
-  } catch (error) {
-    return NextResponse.json({ message: 'Error saving bank details' }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ message: 'Error fetching bank details' }, { status: 500 });
   }
 }
+
+// delete
+export async function DELETE(request: NextRequest, response: NextResponse) {
+  try {
+    await connectToDatabase();
+    const { bankID } = await request.json() as { bankID: string };
+
+    const deletedBankDetails = await BankModel.findByIdAndDelete(bankID);
+
+    if (!deletedBankDetails) {
+      return NextResponse.json({ message: 'Bank details not deleted' }, { status: 400 });
+    }
+
+    return NextResponse.json({ message: 'Bank details deleted' }, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ message: 'Error fetching bank details' }, { status: 500 });
+  }
+}
+
+
+
+

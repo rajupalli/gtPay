@@ -1,17 +1,29 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { BankDetailsType } from '@/schemas/BankDetailsSchema';
+import {bankSchema} from '@/schemas/BankDetailsSchema';
 
-const BankDetailsSchema = new mongoose.Schema({
-  upiId: { type: String, required: true },
-  upiIdConfirm: { type: String, required: true },
+
+interface bankSchemaType extends Document, BankDetailsType {}
+
+// Create the schema
+const BankSchema: Schema = new Schema<bankSchemaType>({
   beneficiaryName: { type: String, required: true },
-  accountNo: { type: String, required: true },
-  accountNoConfirm: { type: String, required: true },
-  ifscCode: { type: String, required: true },
+  accountNo: { type: String, required: true }, // Assuming string type for bank account numbers
+  IFSCcode: { type: String, required: true },
   bankName: { type: String, required: true },
-  qrCode: { type: String, default: '' },
   dailyLimit: { type: String, required: true },
+  activeDays: {
+    type: [String],
+    required: true,
+  },
+  activeMonths: {
+    type: [String],
+    required: true,
+  },
   isActive: { type: Boolean, default: true },
-  paymentType: { type: String, enum: ['QR/UPI Pay', 'Bank Transfer'], required: true }
 });
 
-export default mongoose.models.BankDetails || mongoose.model('BankDetails', BankDetailsSchema);
+// Create the model
+const BankModel = mongoose.models.BankModel || mongoose.model<bankSchemaType>('BankModel', BankSchema);
+
+export default BankModel;
