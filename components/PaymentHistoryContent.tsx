@@ -1,6 +1,9 @@
 "use client";
+
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/table";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { IPaymentHistory } from "@/model/paymentHistory"; // Import the model interface
 
 const statusColors: { [key: string]: string } = {
   Approved: "#289317",
@@ -8,44 +11,51 @@ const statusColors: { [key: string]: string } = {
   Rejected: "#D31812",
 };
 
-interface PaymentRow {
-  serialNo: number;
-  userName: string;
-  mobile: string;
-  utrNo: string;
-  paymentType: string;
-  dateTime: string;
-  amount: string;
-  screenshot: string;
-  status: string;
-}
-
-const paymentData: PaymentRow[] = [
-  { serialNo: 1, userName: "Harshit", mobile: "+91 0123456789", utrNo: "43125625621", paymentType: "UPI", dateTime: "29-08-2024 (11:54:22)", amount: "10000", screenshot: "imgg-inggnam-1244.jpg", status: "Approved" },
-  { serialNo: 2, userName: "Harshit", mobile: "+91 0123456789", utrNo: "43125625621", paymentType: "UPI", dateTime: "29-08-2024 (11:54:22)", amount: "10000", screenshot: "imgg-inggnam-1244.jpg", status: "Pending" },
-  { serialNo: 3, userName: "Harshit", mobile: "+91 0123456789", utrNo: "43125625621", paymentType: "UPI", dateTime: "29-08-2024 (11:54:22)", amount: "10000", screenshot: "imgg-inggnam-1244.jpg", status: "Rejected" },
-  { serialNo: 4, userName: "Harshit", mobile: "+91 0123456789", utrNo: "43125625621", paymentType: "UPI", dateTime: "29-08-2024 (11:54:22)", amount: "10000", screenshot: "imgg-inggnam-1244.jpg", status: "Approved" },
-];
-
 export const PaymentHistoryContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("All");
+  const [paymentData, setPaymentData] = useState<IPaymentHistory[]>([]); // Use IPaymentHistory directly as type
+  const [loading, setLoading] = useState(true); // State to manage loading
 
-  // Filter payment data based on the search term
+  // Fetch payment history from the backend
+  useEffect(() => {
+    const fetchPaymentHistory = async () => {
+      try {
+        const response = await axios.get("/api/payment-history");
+        const fetchedData = response.data.data.map((item: IPaymentHistory) => ({
+          ...item,
+          dateTime: new Date(item.dateTime).toLocaleString(), // Format date for display
+        }));
+        setPaymentData(fetchedData);
+      } catch (error) {
+        console.error("Error fetching payment history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaymentHistory();
+  }, []);
+
+  // Filter payment data based on the search term and filter option
   const filteredData = paymentData.filter(row => {
     const matchesSearch = row.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       row.mobile.toLowerCase().includes(searchTerm.toLowerCase()) ||
       row.utrNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       row.paymentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.dateTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.amount.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.dateTime.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.amount.toString().includes(searchTerm.toLowerCase()) || // Convert amount to string
       row.screenshot.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.status.toLowerCase().includes(searchTerm.toLowerCase())
+      row.status.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter = filterOption === "All" || row.status === filterOption;
 
     return matchesSearch && matchesFilter;
   });
+
+  if (loading) {
+    return <div>Loading...</div>; // Loading indicator while data is being fetched
+  }
 
   return (
     <div>
@@ -66,30 +76,32 @@ export const PaymentHistoryContent = () => {
           <option value="Approved">Success</option>
           <option value="Pending">Pending</option>
           <option value="Rejected">Failed</option>
-          {/* Add other filter options here */}
         </select>
       </div>
-      <Table aria-label="Example static collection table">
+      <Table aria-label="Payment history table">
         <TableHeader>
           <TableColumn>Sl.No.</TableColumn>
           <TableColumn>User Name</TableColumn>
           <TableColumn>Mobile</TableColumn>
           <TableColumn>UTR No.</TableColumn>
           <TableColumn>Payment Type</TableColumn>
+          <TableColumn>Beneficiary Name</TableColumn>
           <TableColumn>Date/Time</TableColumn>
           <TableColumn>Amount</TableColumn>
           <TableColumn>Screenshot</TableColumn>
           <TableColumn>Status</TableColumn>
         </TableHeader>
         <TableBody>
-          {paymentData.map(row => (
-            <TableRow key={row.serialNo}>
-              <TableCell>{row.serialNo}.</TableCell>
+          {filteredData.map((row, index) => (
+            <TableRow key={String(row._id)}>
+
+              <TableCell>{index + 1}.</TableCell>
               <TableCell>{row.userName}</TableCell>
               <TableCell>{row.mobile}</TableCell>
               <TableCell>{row.utrNo}</TableCell>
               <TableCell>{row.paymentType}</TableCell>
-              <TableCell>{row.dateTime}</TableCell>
+              <TableCell>{row.beneficiaryName}</TableCell>
+              <TableCell>{row.dateTime.toString()}</TableCell>
               <TableCell>{row.amount}</TableCell>
               <TableCell>{row.screenshot}</TableCell>
               <TableCell className="font-bold" style={{ color: statusColors[row.status] }}>
@@ -100,5 +112,5 @@ export const PaymentHistoryContent = () => {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 };
