@@ -15,8 +15,7 @@ interface NavbarProps {
   transactionId?: string; // Transaction ID if it needs to be displayed
 }
 
-export const Navbar : React.FC<NavbarProps> = ({ showTransactionId = true, transactionId }) => {
-
+export const Navbar: React.FC<NavbarProps> = ({ showTransactionId = true, transactionId }) => {
   return (
     <NextUINavbar maxWidth="xl" position="sticky" className="shadow-md">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
@@ -33,23 +32,26 @@ export const Navbar : React.FC<NavbarProps> = ({ showTransactionId = true, trans
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
-        justify="end"
-      >
-        <NavbarItem className="hidden md:flex gap-3">
-          <span className="text-black font-bold">Transaction Id : {transactionId}</span>
-        </NavbarItem>
-      </NavbarContent>
+      {/* Conditionally render the transactionId if showTransactionId is true */}
+      {showTransactionId && transactionId && (
+        <NavbarContent className="hidden sm:flex basis-1/5 sm:basis-full" justify="end">
+          <NavbarItem className="hidden md:flex gap-3">
+            <span className="text-black font-bold">Transaction Id: {transactionId}</span>
+          </NavbarItem>
+        </NavbarContent>
+      )}
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
         <NavbarMenuToggle className="text-black" />
       </NavbarContent>
 
       <NavbarMenu>
-        <div className="mx-4 mt-2 flex flex-col gap-2">
-          <span className="text-black font-bold">Transaction Id : {transactionId}</span>
-        </div>
+        {/* Conditionally render the transactionId in the mobile menu as well */}
+        {showTransactionId && transactionId && (
+          <div className="mx-4 mt-2 flex flex-col gap-2">
+            <span className="text-black font-bold">Transaction Id: {transactionId}</span>
+          </div>
+        )}
       </NavbarMenu>
     </NextUINavbar>
   );

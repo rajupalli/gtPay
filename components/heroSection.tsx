@@ -5,7 +5,12 @@ import React, { useEffect, useState } from "react";
 import { FiCopy } from "react-icons/fi";
 import axios from "axios";
 
-export default function HeroSection() {
+
+interface HeroSectionProps {
+    transactionId: string; // Add the prop type for transactionId
+  }
+
+export default function HeroSection({ transactionId }: HeroSectionProps) {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
     const [timeRemaining, setTimeRemaining] = useState(180);
     const [amount, setAmount] = useState("");
@@ -181,7 +186,8 @@ export default function HeroSection() {
             dateTime: new Date().toISOString(), // Send the date as a string in ISO format
             amount: Number(amount), // Ensure amount is passed as a number
             screenshot: 'screenshot', // Provide the actual screenshot path or filename
-            status: "Pending" // Default status
+            status: "Pending",
+            transactionId:transactionId // Default status
         };
     
         try {
@@ -189,12 +195,12 @@ export default function HeroSection() {
             const response = await axios.post('/api/payment-history', paymentHistoryData);
             const paymentHistoryId = response.data.data._id; // Assuming the response returns the saved payment history with an _id
             alert('Payment history added successfully!');
-    
+            window.location.reload();
             // Step 2: Check if the refId and amount exist in the message collection
             // Ensure amount is sent as a string because MongoDB stores amount as a string in your schema
             const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}`);
             await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second
-
+            
             // Log the response to see the data
             console.log("Checking messages response:", messageCheckResponse.data);
             console.log(messageCheckResponse.data);
@@ -210,6 +216,7 @@ export default function HeroSection() {
             } else {
                 alert('No matching message found for the payment history.');
             }
+           
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 // Axios-specific error handling
@@ -240,7 +247,7 @@ export default function HeroSection() {
                     <div>
                         <div className="flex justify-center items-center mt-10">
                             <img
-                                src={bankDetails.qrCodeUrl || "/qr1.jpg"}
+                                src={bankDetails.qrCodeUrl || "/qr12.jpg"}
                                 alt="QR Code"
                                 className="w-100 h-100 md:w-40 md:h-40 object-cover"
                             />

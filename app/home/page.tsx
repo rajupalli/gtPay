@@ -25,7 +25,7 @@ export default function HomePage() {
   return (
     <div>
       <Navbar transactionId={transactionId} />
-      <HeroSection />
+      <HeroSection transactionId={transactionId} />
     </div>
   );
 }

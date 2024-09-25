@@ -15,6 +15,7 @@ const paymentHistorySchema = z.object({
   amount: z.number().positive("Amount must be a positive number"),
   screenshot: z.string().nonempty("Screenshot filename is required"),
   status: Status.default('Pending'),
+  transactionId: z.string().optional().default(''),  // New field with default empty string
 });
 
 // Infer TypeScript type from schema

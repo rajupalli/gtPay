@@ -11,6 +11,7 @@ export interface IPaymentHistory extends Document {
   amount: number;
   screenshot: string;
   status: 'Pending' | 'Rejected' | 'Approved';
+  transactionId: string;  // New field
 }
 
 // Define the Mongoose schema for the PaymentHistory
@@ -24,6 +25,7 @@ const PaymentHistorySchema: Schema<IPaymentHistory> = new Schema<IPaymentHistory
   amount: { type: Number, required: true },
   screenshot: { type: String, required: true },
   status: { type: String, enum: ['Pending', 'Rejected', 'Approved'], default: 'Pending' },
+  transactionId: { type: String, default: '' },  // New field with default empty string
 }, { versionKey: false });
 
 // Ensure an `_id` field is defined correctly
