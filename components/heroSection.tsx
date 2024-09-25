@@ -195,7 +195,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             const response = await axios.post('/api/payment-history', paymentHistoryData);
             const paymentHistoryId = response.data.data._id; // Assuming the response returns the saved payment history with an _id
             alert('Payment history added successfully!');
-            window.location.reload();
+           // window.location.reload();
             // Step 2: Check if the refId and amount exist in the message collection
             // Ensure amount is sent as a string because MongoDB stores amount as a string in your schema
             const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}`);
