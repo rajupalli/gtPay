@@ -247,7 +247,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                     <div>
                         <div className="flex justify-center items-center mt-10">
                             <img
-                                src={bankDetails.qrCodeUrl || "/qr12.jpg"}
+                                src={bankDetails.qrCodeUrl || "/qrcode.png"}
                                 alt="QR Code"
                                 className="w-100 h-100 md:w-40 md:h-40 object-cover"
                             />
