@@ -26,8 +26,10 @@ export async function GET (req: NextRequest, res: NextResponse){
 // POST /api/upi
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
+        
         await connectToDatabase();
         const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId } = await req.json() as RequestBody;
+
         const upi = await UpiModel.create({ activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId });
         if (!upi) {
             return NextResponse.json({ message: 'UPI not saved' }, { status: 400 });
@@ -52,15 +54,28 @@ export async function PUT (req: NextRequest, res: NextResponse) {
     }
 };
 
-export async function DELETE (req: NextRequest, res: NextResponse) {
-    const { upiId } = await req.json() as { upiId: String };
+export async function DELETE(req: NextRequest, res: NextResponse) {
     try {
-        const upi = await UpiModel.findByIdAndDelete(upiId);
-        if (!upi) {
-            return NextResponse.json({ message: 'UPI not found' }, { status: 404 });
-        }
-        return NextResponse.json({ message: 'UPI deleted successfully' }, { status: 200 });
+      // Parse the JSON body from the request
+      const body = await req.json(); 
+      const { upiID } = body; // Get upiID from the request body
+  
+      // Validate UPI ID
+      if (!upiID || typeof upiID !== 'string') {
+        return NextResponse.json({ message: 'Invalid UPI ID' }, { status: 400 });
+      }
+  
+      // Perform the deletion
+      const upi = await UpiModel.findByIdAndDelete(upiID);
+      if (!upi) {
+        return NextResponse.json({ message: 'UPI not found' }, { status: 404 });
+      }
+  
+      // Return a success response
+      return NextResponse.json({ message: 'UPI deleted successfully' }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+      console.error("Error deleting UPI: ", error);
+      return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
     }
-};
+  }
+  

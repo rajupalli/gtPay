@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   }
   
 
-  export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
       await connectToDatabase();
       const paymentHistoryData = await request.json();
@@ -51,75 +51,84 @@ export async function GET(request: NextRequest) {
   
   
 
-// Delete payment history by ID (DELETE /api/payment-history)
+// Delete payment history by UTR (DELETE /api/payment-history)
 export async function DELETE(request: NextRequest) {
-    try {
-      await connectToDatabase();
-      const { paymentId } = await request.json() as { paymentId: string };
-  
-      // Find and delete payment history by ID
-      const deletedPaymentHistory = await PaymentHistoryModel.findByIdAndDelete(paymentId);
-  
-      if (!deletedPaymentHistory) {
-        return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
-      }
-  
-      return NextResponse.json({ message: 'Payment history deleted', data: deletedPaymentHistory }, { status: 200 });
-    } catch (error) {
-      // Narrowing down the error type to an object with a message
-      if (error instanceof Error) {
-        return NextResponse.json({ message: 'Error deleting payment history', error: error.message }, { status: 500 });
-      } else {
-        // If error is not an instance of Error, return a generic message
-        return NextResponse.json({ message: 'Unknown error occurred', error: String(error) }, { status: 500 });
-      }
+  try {
+    // Connect to the database
+    await connectToDatabase();
+
+    // Extract utrNo from the request body
+    const { utrNo } = await request.json() as { utrNo: string };
+
+    // Log the UTR number to ensure it's received correctly
+    console.log('Received UTR number for deletion:', utrNo);
+
+    // Ensure that utrNo is provided
+    if (!utrNo) {
+      return NextResponse.json({ message: 'UTR number is required' }, { status: 400 });
+    }
+
+    // Find and delete payment history by UTR number
+    const deletedPaymentHistory = await PaymentHistoryModel.findOneAndDelete({ utrNo });
+
+    // If no record is found, return a 404
+    if (!deletedPaymentHistory) {
+      console.log(`Payment history with UTR ${utrNo} not found`);
+      return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
+    }
+
+    // Return success response if the record was deleted
+    return NextResponse.json({ message: 'Payment history deleted', data: deletedPaymentHistory }, { status: 200 });
+  } catch (error) {
+    // Error handling: returning error message with 500 status code
+    if (error instanceof Error) {
+      console.error('Error deleting payment history:', error.message);
+      return NextResponse.json({ message: 'Error deleting payment history', error: error.message }, { status: 500 });
+    } else {
+      console.error('Unknown error occurred:', String(error));
+      return NextResponse.json({ message: 'Unknown error occurred', error: String(error) }, { status: 500 });
     }
   }
-  
+ }
+
  
   
-  // Update payment history by ID (PUT /api/payment-history)
-  export async function PUT(request: NextRequest) {
-    try {
-      await connectToDatabase(); // Ensure the database is connected
-  
-      // Extract paymentId from the URL
-      const { pathname } = new URL(request.url);
-      const paymentId = pathname.split('/').pop(); // Extract the ID from the URL (last part of the path)
-  
-      // Check if paymentId is undefined
-      if (!paymentId) {
-        return NextResponse.json({ message: 'Payment ID is required' }, { status: 400 });
-      }
-  
-      // Validate ObjectId
-      const isValidObjectId = mongoose.Types.ObjectId.isValid(paymentId);
-      if (!isValidObjectId) {
-        return NextResponse.json({ message: 'Invalid ID format' }, { status: 400 });
-      }
-  
-      const updateData = await request.json(); // Remaining update data (e.g., status)
-  
-      // Validate updated data using Zod schema
-      const validatedData = paymentHistorySchema.partial().parse(updateData);
-  
-     // Find and update payment history by ID
-const updatedPaymentHistory = await PaymentHistoryModel.findByIdAndUpdate(
-  paymentId, 
-  validatedData, 
-  { new: true } // This option ensures the updated document is returned
-);
-       console.log(updatedPaymentHistory);
-      if (!updatedPaymentHistory) {
-        return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
-      }
-  
-      return NextResponse.json({ message: 'Payment history updated', data: updatedPaymentHistory }, { status: 200 });
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
-      }
-      return NextResponse.json({ message: 'Error updating payment history', error: error.message }, { status: 500 });
+// Update payment history by UTR (PUT /api/payment-history)
+export async function PUT(request: NextRequest) {
+  try {
+    await connectToDatabase(); // Ensure the database is connected
+
+    const updateData = await request.json(); // Remaining update data (e.g., utrNo, status)
+
+    const { utrNo, status } = updateData;
+
+    // Check if utrNo is provided
+    if (!utrNo) {
+      return NextResponse.json({ message: 'UTR number is required' }, { status: 400 });
     }
+
+    // Validate status
+    if (!['Approved', 'Rejected'].includes(status)) {
+      return NextResponse.json({ message: 'Invalid status value' }, { status: 400 });
+    }
+
+    // Find and update payment history by UTR number
+    const updatedPaymentHistory = await PaymentHistoryModel.findOneAndUpdate(
+      { utrNo }, // Query using UTR number
+      { status }, // Update status
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedPaymentHistory) {
+      return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Payment history updated', data: updatedPaymentHistory }, { status: 200 });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ message: 'Error updating payment history', error: error.message }, { status: 500 });
   }
-  
+ }
+

@@ -421,23 +421,37 @@ export const PaymentMethodsContent: React.FC = () => {
 
   const fetchPaymentDetails = async () => {
     try {
-      const bankResponse = await axios.get("/api/bank");
-      const upiResponse = await axios.get("/api/upi");
+      // Fetch both responses concurrently to reduce wait time
+      const [bankResponse, upiResponse] = await Promise.all([
+        axios.get("/api/bank"),
+        axios.get("/api/upi")
+      ]);
+
+      // Check if responses have the expected structure
+      const bankDetails = bankResponse?.data?.data || [];
+      const upiDetails = upiResponse?.data?.data || [];
+
+      // Combine both details with types
       const combinedDetails: PaymentDetail[] = [
-        ...bankResponse.data.data.map((detail: BankDetail) => ({
+        ...bankDetails.map((detail: BankDetail) => ({
           ...detail,
           type: "bank",
         })),
-        ...upiResponse.data.data.map((detail: UpiDetail) => ({
+        ...upiDetails.map((detail: UpiDetail) => ({
           ...detail,
           type: "upi",
         })),
       ];
+
+      // Set the combined payment details to the state
       setPaymentDetails(combinedDetails);
+
     } catch (error) {
       console.error("Error fetching payment details:", error);
+      // Optionally, add user feedback here for better UX
     }
-  };
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let { name, value } = e.target;
@@ -510,6 +524,7 @@ export const PaymentMethodsContent: React.FC = () => {
   const handleCreateUpi = async () => {
     try {
       const response = await axios.post("/api/upi", formData);
+       
       const newDetail = { ...response.data.data, type: "upi" } as PaymentDetail;
       setPaymentDetails([...paymentDetails, newDetail]);
       handleCloseModal();
@@ -526,18 +541,19 @@ export const PaymentMethodsContent: React.FC = () => {
   };
 
   const handleDeleteDetail = async (detail: PaymentDetail) => {
+    console.log(paymentDetails);
     try {
       if (detail.type === "bank") {
         await axios.delete("/api/bank", { data: { bankID: detail._id } });
       } else {
-        await axios.delete("/api/upi", { data: { upiID: detail._id } });
+        await axios.delete("/api/upi", { data: { upiID: detail._id } }); // Keep passing UPI ID in the body
       }
-      setPaymentDetails(paymentDetails.filter((d) => d._id !== detail._id));
+       setPaymentDetails(paymentDetails.filter((d) => d._id !== detail._id));
     } catch (error) {
       console.error("Error deleting detail:", error);
     }
   };
-
+  
   const handleCardClick = () => {
     fileInputRef.current?.click();
   };
@@ -556,7 +572,7 @@ export const PaymentMethodsContent: React.FC = () => {
               <div
                 key={index}
                 className="bg-white shadow-lg border border-black rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => handleEditDetail(detail)}
+                //onClick={() => handleEditDetail(detail)}
               >
                 <div className="flex flex-col items-start p-4">
                   <p className="text-paymentGrey text-xl font-semibold mb-1 leading-8">
