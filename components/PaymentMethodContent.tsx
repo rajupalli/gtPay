@@ -397,6 +397,7 @@ export const PaymentMethodsContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [formData, setFormData] = useState<BankDetail | UpiDetail>({
+    
     beneficiaryName: "",
     accountNo: "", // BankDetail field
     IFSCcode: "", // BankDetail field
@@ -415,9 +416,16 @@ export const PaymentMethodsContent: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Fetch all bank and UPI details on component mount
+     // Determine if the formData is for UPI or Bank and set the tab accordingly
+  
+    if ("upiId" in formData && formData.upiId !== "") {
+      setTabValue(0); // UPI tab
+    } else if ("accountNo" in formData && formData.accountNo !== "") {
+      setTabValue(1); // Bank tab
+    }
+  
     fetchPaymentDetails();
-  }, []);
+  }, [formData]);
 
   const fetchPaymentDetails = async () => {
     try {
@@ -451,6 +459,17 @@ export const PaymentMethodsContent: React.FC = () => {
       // Optionally, add user feedback here for better UX
     }
 };
+
+
+
+function isBankDetail(data: BankDetail | UpiDetail): data is BankDetail {
+  return (data as BankDetail).accountNo !== undefined;
+}
+
+function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
+  return (data as UpiDetail).upiId !== undefined;
+}
+
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -487,6 +506,18 @@ export const PaymentMethodsContent: React.FC = () => {
     setIsModalOpen(false);
     setEditMode(false);
     setEditDetail(null);
+    setFormData({
+      beneficiaryName: "",
+      accountNo: "", // BankDetail field
+      IFSCcode: "", // BankDetail field
+      bankName: "", // BankDetail field
+      upiId: "", // UpiDetail field
+      qrCode: "", // UpiDetail field
+      dailyLimit: "0",
+      activeDays: ["Monday", "Tuesday"],
+      activeMonths: ["January", "February"],
+      isActive: true,
+    });
     resetFormData();
   };
 
@@ -606,7 +637,7 @@ export const PaymentMethodsContent: React.FC = () => {
                   )}
                   <div className="flex gap-2 mt-4">
                     <button
-                      className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                      className="bg-green-500 text-white px-2 py-1 rounded hover:bg-blue-600"
                       onClick={() => handleEditDetail(detail)}
                     >
                       Edit
@@ -637,33 +668,62 @@ export const PaymentMethodsContent: React.FC = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
-            <h2 className="text-lg font-bold mb-4">
-              {editMode ? "Edit Details" : "Add Details"}
-            </h2>
+    <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+  <h2 className="text-lg font-bold mb-4">
+    {editMode ? "Edit Details" : "Add Details"}
+  </h2>
 
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mb-4">
-              <button
-                className={`py-2 md:py-4 px-4 w-full rounded-xl border-1 border-black ${
-                  tabValue === 0
-                    ? "bg-primary text-black font-bold"
-                    : "bg-white text-gray-500"
-                }`}
-                onClick={() => handleTabChange(0)}
-              >
-                QR/UPI Pay
-              </button>
-              <button
-                className={`py-2 md:py-4 px-4 w-full rounded-xl border-1 border-black ${
-                  tabValue === 1
-                    ? "bg-primary text-black font-bold"
-                    : "bg-white text-gray-500"
-                }`}
-                onClick={() => handleTabChange(1)}
-              >
-                Bank Transfer
-              </button>
-            </div>
+  <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mb-4">
+    {editMode ? (
+      <>
+        {/* Show UPI button if UPI details are valid */}
+        { isUpiDetail(formData) && (formData as UpiDetail)?.upiId?.trim() !== ""  ? (
+          <button
+            className={`py-2 md:py-4 px-4 w-full rounded-xl border border-black ${
+              "bg-primary text-black font-bold"  
+            }`}
+            onClick={() => handleTabChange(0)}
+          >
+            QR/UPI Pay
+          </button>
+        ) : (
+          /* Show Bank button if UPI button is not shown and Bank details are valid */
+          (formData as BankDetail)?.accountNo?.trim() !== "" && (formData as BankDetail)?.IFSCcode?.trim() !== "" && (
+            <button
+              className={`py-2 md:py-4 px-4 w-full rounded-xl border border-black ${
+                 "bg-primary text-black font-bold"  
+              }`}
+              onClick={() => handleTabChange(1)}
+            >
+              Bank Transfer
+            </button>
+          )
+        )}
+      </>
+    ) : (
+      <>
+        {/* In non-edit mode, show both buttons without conditions */}
+        <button
+         className={`py-2 md:py-4 px-4 w-full rounded-xl border border-black ${
+          tabValue === 0 ? "bg-primary text-black font-bold" : "bg-white text-gray-500"
+        }`}
+          onClick={() => handleTabChange(0)}
+        >
+          QR/UPI Pay
+        </button>
+        <button
+          className={`py-2 md:py-4 px-4 w-full rounded-xl border border-black ${
+            tabValue === 1 ? "bg-primary text-black font-bold" : "bg-white text-gray-500"
+          }`}
+          onClick={() => handleTabChange(1)}
+        >
+          Bank Transfer
+        </button>
+      </>
+    )}
+  </div>
+
+
 
             <form>
               {tabValue === 0 && (

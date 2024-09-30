@@ -201,9 +201,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}`);
             await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second
             
-            // Log the response to see the data
-            console.log("Checking messages response:", messageCheckResponse.data);
-            console.log(messageCheckResponse.data);
+           
             if (messageCheckResponse.data.found) {
                 console.log(paymentHistoryId);
                 // Step 3: If found, update the payment history status to "Approved"
@@ -249,11 +247,13 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                 return (
                     <div>
                         <div className="flex justify-center items-center mt-10">
-                            <img
-                                src={bankDetails.qrCodeUrl || "/qr123.jpg"}
-                                alt="QR Code"
-                                className="w-100 h-100 md:w-40 md:h-40 object-cover"
-                            />
+                        <img
+  src={upiId.qrCode && upiId.qrCode.trim() ? upiId.qrCode : "/qr123.jpg"}
+  alt="QR Code"
+  className="w-100 h-100 md:w-40 md:h-40 object-cover"
+/>
+
+
                         </div>
 
                         <div className="flex flex-col gap-4 mt-10">
