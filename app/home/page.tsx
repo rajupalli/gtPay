@@ -12,10 +12,14 @@ export default function HomePage() {
   useEffect(() => {
     // Function to generate a 12-digit transaction ID
     const generateTransactionId = () => {
-      const timestamp = Date.now().toString().slice(-6); // Last 6 digits of the current timestamp
-      const randomDigits = Math.floor(100000 + Math.random() * 900000).toString(); // Random 6 digits
-      return timestamp + randomDigits;
+      const timestamp = Date.now().toString().slice(-8); // Take the last 8 digits of the timestamp
+      const randomDigits = Math.floor(10000 + Math.random() * 90000).toString(); // Random 5 digits
+      return timestamp + randomDigits; // Concatenate the timestamp and random digits
     };
+    
+    
+    
+    
 
     // Generate and set the transaction ID
     const id = generateTransactionId();

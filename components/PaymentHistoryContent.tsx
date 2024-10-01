@@ -16,6 +16,9 @@ const statusColors: { [key: string]: string } = {
 export const PaymentHistoryContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("All");
+  const [transactionType, setTransactionType] = useState("All");
+  const [beneficiaryFilter, setBeneficiaryFilter] = useState("All");
+  
   const [paymentData, setPaymentData] = useState<IPaymentHistory[]>([]); // Use IPaymentHistory directly as type
   const [loading, setLoading] = useState(true); // State to manage loading
   const [menuOpen, setMenuOpen] = useState<string | null>(null); // Track which row's menu is open
@@ -72,6 +75,7 @@ export const PaymentHistoryContent = () => {
     setMenuOpen(null); // Close the menu after action
   };
   
+  const uniqueBeneficiaries = Array.from(new Set(paymentData.map(item => item.beneficiaryName)));
 
 
   // Toggle the menu open/close state for a specific row
@@ -79,21 +83,19 @@ export const PaymentHistoryContent = () => {
     setMenuOpen((prev) => (prev === rowId ? null : rowId));
   };
 
-  // Filter payment data based on the search term and filter option
   const filteredData = paymentData.filter(row => {
     const matchesSearch = row.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       row.mobile.toLowerCase().includes(searchTerm.toLowerCase()) ||
       row.utrNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.paymentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.dateTime.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.amount.toString().includes(searchTerm.toLowerCase()) || // Convert amount to string
-      row.screenshot.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.status.toLowerCase().includes(searchTerm.toLowerCase());
-
+      row.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
+  
     const matchesFilter = filterOption === "All" || row.status === filterOption;
-
-    return matchesSearch && matchesFilter;
+    const matchesTransactionType = transactionType === "All" || row.paymentType === transactionType;
+    const matchesBeneficiary = beneficiaryFilter === "All" || row.beneficiaryName === beneficiaryFilter;
+  
+    return matchesSearch && matchesFilter && matchesTransactionType && matchesBeneficiary;
   });
+  
 
   if (loading) {
     return <div>Loading...</div>; // Loading indicator while data is being fetched
@@ -101,25 +103,52 @@ export const PaymentHistoryContent = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center">
-        <input
-          type="text"
-          placeholder="Search Transaction"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-4 p-2 border rounded"
-        />
-        <select
-          value={filterOption}
-          onChange={(e) => setFilterOption(e.target.value)}
-          className="p-2 mb-4 border rounded"
-        >
-          <option value="All">Filter</option>
-          <option value="Approved">Success</option>
-          <option value="Pending">Pending</option>
-          <option value="Rejected">Failed</option>
-        </select>
-      </div>
+     <div className="flex justify-between items-center mb-4">
+  {/* Search input on the left side */}
+  <input
+    type="text"
+    placeholder="Search Transaction"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="p-2 border rounded flex-grow mr-4"
+  />
+
+  {/* Filters on the right side */}
+  <div className="flex space-x-4">
+    <select
+      value={transactionType}
+      onChange={(e) => setTransactionType(e.target.value)}
+      className="p-2 border rounded"
+    >
+      <option value="All">All</option>
+      <option value="UPI">UPI</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+    </select>
+
+    <select
+      value={beneficiaryFilter}
+      onChange={(e) => setBeneficiaryFilter(e.target.value)}
+      className="p-2 border rounded"
+    >
+      <option value="All">All Beneficiaries</option>
+      {uniqueBeneficiaries.map((name, index) => (
+        <option key={index} value={name}>{name}</option>
+      ))}
+    </select>
+
+    <select
+      value={filterOption}
+      onChange={(e) => setFilterOption(e.target.value)}
+      className="p-2 border rounded"
+    >
+      <option value="All">All</option>
+      <option value="Approved">Success</option>
+      <option value="Pending">Pending</option>
+      <option value="Rejected">Failed</option>
+    </select>
+  </div>
+</div>
+
       <Table aria-label="Payment history table">
         <TableHeader>
           <TableColumn>Sl.No.</TableColumn>

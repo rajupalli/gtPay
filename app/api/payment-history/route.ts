@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
   
       return NextResponse.json({ message: 'Payment history added', data: newPaymentHistory }, { status: 201 });
     } catch (error: any) {
+        console.log(error);
       if (error instanceof z.ZodError) {
         return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
       }

@@ -163,25 +163,42 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     };
    
 
-    const handleSubmit = async (transactionType: string) => {
+    const handleSubmit = async (transactionType: string, beneficiaryName :string) => {
         // Validate UTR (Unique Transaction Reference)
         if (utr.length !== 12) {
             alert("Transaction reference number (UTR) must be exactly 12 digits.");
             return;
         }
     
+
+        
         // Validate amount
         if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
             alert("Amount must be a positive number.");
             return;
         }
-    
+
+
+          // Check if UTR already exists in the backend
+    try {
+        const utrCheckResponse = await axios.get(`/api/payment-history/checkUtr?utrNo=${utr}`);
+
+        if (utrCheckResponse.data.exists) {
+            alert('UTR number already exists');
+            return; // Stop the execution if UTR exists
+        }
+    } catch (error) {
+        alert('Error checking UTR number.');
+        return;
+    }
+
+       
         // Prepare the data to be sent to the backend
         const paymentHistoryData = {
             userName: "saraf",
             mobile: "8624975041",
             utrNo: utr,
-            beneficiaryName: "sarfa",
+            beneficiaryName: beneficiaryName,
             paymentType: transactionType, // Either 'Bank Transfer' or 'UPI'
             dateTime: new Date().toISOString(), // Send the date as a string in ISO format
             amount: Number(amount), // Ensure amount is passed as a number
@@ -189,7 +206,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             status: "Pending",
             transactionId:transactionId // Default status
         };
-    
+          console.log(paymentHistoryData);
         try {
             // Step 1: Save payment history
             const response = await axios.post('/api/payment-history', paymentHistoryData);
@@ -318,7 +335,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         <div className="mt-12">
                             <button
                                 type="submit"
-                                onClick={() => handleSubmit('UPI')}
+                                onClick={() => handleSubmit('UPI', upiId.beneficiaryName)}
                                 className="py-4 px-4 w-full bg-greenSubmit rounded-lg"
                                 disabled={timeRemaining === 0}
                             >
@@ -425,7 +442,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         <div className="mt-8">
                             <button
                                 type="submit"
-                                onClick={() => handleSubmit('Bank Transafer')}
+                                onClick={() => handleSubmit('Bank Transfer',bankDetails.name)}
                                 className="py-4 px-4 w-full bg-greenSubmit rounded-lg"
                                 disabled={timeRemaining === 0}
                             >
