@@ -27,7 +27,7 @@ export const uploadFileToCloudinary = async (file: File): Promise<any> => {
         cloudinary.uploader.upload_stream(
           {
             tags: ['nextjs-server-actions-upload-sneakers'],
-            upload_preset: 'yoigxf8t',  // Make sure this preset exists in your Cloudinary account
+            upload_preset: 'rajupalli',  // Make sure this preset exists in your Cloudinary account
           },
           (error, result) => {
             if (error) {
