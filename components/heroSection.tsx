@@ -14,7 +14,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
     const [timeRemaining, setTimeRemaining] = useState(180);
     const [amount, setAmount] = useState("");
-    const totalApprovedAmount=0;
+ 
     const [utr, setUtr] = useState("");
     const [upiId, setUpiId] = useState({
         beneficiaryName: '',
@@ -84,14 +84,39 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         // Show default first item in data
                         upiInfo = result.data[0];
                     } else {
-                        // Find based on condition
-                        upiInfo = result.data.find((upiRecord: any) => {
-                            const dailyLimitAsNumber = Number(upiRecord.dailyLimit); // Convert dailyLimit to number
-                            const totalApprovedAmountAsNumber = Number(totalApprovedAmount); // Convert totalApprovedAmount to number
-                            const amountAsNumber = Number(amount); // Convert amount to number
+                       // Find based on condition
+                        // upiInfo = result.data.find((upiRecord: any) => {
+                        //     const dailyLimitAsNumber = Number(upiRecord.dailyLimit); // Convert dailyLimit to number
+                        //     const totalApprovedAmountAsNumber = Number(0); // Convert totalApprovedAmount to number
+                        //     const amountAsNumber = Number(amount); // Convert amount to number
     
-                            return dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber);
-                        });
+                        //     return dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber);
+                        // });
+
+
+                        for (const upiRecord of result.data) {
+                            // Fetch total approved amount based on beneficiaryName before checking the condition
+                            console.log(upiRecord.beneficiaryName);
+                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.beneficiaryName)}`);
+                            const approvedAmountResult = await response.json();
+                            const totalApprovedAmountAsNumber = Number(approvedAmountResult.totalApprovedAmount); 
+                            
+                            // if (approvedAmountResult && typeof approvedAmountResult.totalApprovedAmount === 'number') {
+                            //     const totalApprovedAmount = approvedAmountResult.totalApprovedAmount; // Get the total approved amount
+    
+                                // Convert necessary fields to numbers
+                                const dailyLimitAsNumber = Number(upiRecord.dailyLimit);
+                                const amountAsNumber = Number(amount);
+    
+                                // Check the condition based on dailyLimit and totalApprovedAmount
+                                if (dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber)) {
+                                    upiInfo = upiRecord;
+                                    break; // Exit loop once a matching record is found
+                                }
+                            // } else {
+                            //     console.error('Error fetching approved transaction amount.');
+                            // }
+                        }
                     }
     
                     if (upiInfo) {
@@ -127,7 +152,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
         };
     
         fetchUpiDetails(); // Fetch UPI details by default or when amount changes
-    }, [totalApprovedAmount, amount]); // Ensure it re-fetches if these values change
+    }, [ amount]); // Ensure it re-fetches if these values change
     
 
 
