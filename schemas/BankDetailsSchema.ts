@@ -1,4 +1,3 @@
-// This Zod schema is used in the `route.ts` file to validate the data before saving it to the database.
 import { z } from 'zod';
 
 // Define Zod schema
@@ -11,6 +10,9 @@ const bankSchema = z.object({
   activeDays: z.array(z.string()),
   activeMonths: z.array(z.string()),
   isActive: z.boolean().default(true),
+  // Add new fields for rangeFrom and rangeTo
+  rangeFrom: z.number().default(0),
+  rangeTo: z.number().default(0),
 });
 
 export type BankDetailsType = z.infer<typeof bankSchema>;

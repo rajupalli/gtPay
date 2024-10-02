@@ -396,19 +396,27 @@ type PaymentDetail = BankDetail & UpiDetail & { type: "bank" | "upi"; _id: strin
 export const PaymentMethodsContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const [formData, setFormData] = useState<BankDetail | UpiDetail>({
-    
-    beneficiaryName: "",
-    accountNo: "", // BankDetail field
-    IFSCcode: "", // BankDetail field
-    bankName: "", // BankDetail field
-    upiId: "", // UpiDetail field
-    qrCode: "", // UpiDetail field
-    dailyLimit: "0",
-    activeDays: ["Monday", "Tuesday"],
-    activeMonths: ["January", "February"],
-    isActive: true,
-  });
+  const [formData, setFormData] = useState<
+  BankDetail | UpiDetail
+>({
+  beneficiaryName: "",
+  // BankDetail specific fields
+  accountNo: "", // Applicable only for BankDetail
+  IFSCcode: "", // Applicable only for BankDetail
+  bankName: "", // Applicable only for BankDetail
+   
+  upiId: "", // Applicable only for UpiDetail
+  qrCode: "", // Applicable only for UpiDetail
+   
+  dailyLimit: "0",
+  activeDays: ["Monday", "Tuesday"],
+  activeMonths: ["January", "February"],
+  isActive: true,
+  // rangeFrom and rangeTo fields
+  rangeFrom: 0, // Corrected naming to match camelCase
+  rangeTo: 0 // Corrected naming to match camelCase
+});
+
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetail[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [editDetail, setEditDetail] = useState<PaymentDetail | null>(null);
@@ -517,6 +525,8 @@ function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
       activeDays: ["Monday", "Tuesday"],
       activeMonths: ["January", "February"],
       isActive: true,
+      rangeFrom:0,
+      rangeTo:0,
     });
     resetFormData();
   };
@@ -533,6 +543,7 @@ function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
       activeDays: ["Monday", "Tuesday"],
       activeMonths: ["January", "February"],
       isActive: true,
+      rangeFrom:0,rangeTo:0
     });
   };
 
@@ -555,7 +566,7 @@ function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
   const handleCreateUpi = async () => {
     try {
       const response = await axios.post("/api/upi", formData);
-       
+       console.log(formData);
       const newDetail = { ...response.data.data, type: "upi" } as PaymentDetail;
       setPaymentDetails([...paymentDetails, newDetail]);
       handleCloseModal();
@@ -779,6 +790,31 @@ function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
                       style={{ fontWeight: "bold", fontSize: "1.1rem" }}
                     />
                   </div>
+
+                  <div className="mt-5 flex space-x-4">
+  <div>
+    <Input
+      name="rangeFrom" // Corrected casing for consistency
+      label="Range from"
+      value={formData.rangeFrom.toString()} // Convert number to string
+      onChange={handleChange}
+      className="w-full text-xl bg-transparent rounded-xl border-1 border-black"
+      style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+    />
+  </div>
+
+  <div>
+    <Input
+      name="rangeTo" // Corrected casing for consistency
+      label="Range to"
+      value={formData.rangeTo.toString()} // Convert number to string
+      onChange={handleChange}
+      className="w-full text-xl bg-transparent rounded-xl border-1 border-black"
+      style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+    />
+  </div>
+</div>
+
                 </div>
               )}
 
@@ -837,6 +873,29 @@ function isUpiDetail(data: BankDetail | UpiDetail): data is UpiDetail {
                       style={{ fontWeight: "bold", fontSize: "1.1rem" }}
                     />
                   </div>
+                  <div className="mt-5 flex space-x-4">
+  <div>
+    <Input
+      name="rangeFrom" // Corrected casing for consistency
+      label="Range from"
+      value={formData.rangeFrom.toString()} // Convert number to string
+      onChange={handleChange}
+      className="w-full text-xl bg-transparent rounded-xl border-1 border-black"
+      style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+    />
+  </div>
+
+  <div>
+    <Input
+      name="rangeTo" // Corrected casing for consistency
+      label="Range to"
+      value={formData.rangeTo.toString()} // Convert number to string
+      onChange={handleChange}
+      className="w-full text-xl bg-transparent rounded-xl border-1 border-black"
+      style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+    />
+  </div>
+</div>
                 </div>
               )}
             </form>

@@ -10,6 +10,8 @@ export interface RequestBody {
     activeDays: string[];
     activeMonths: string[];
     isActive: boolean;
+    rangeFrom: number;  // Ensure this is included
+    rangeTo: number; 
 }
 
 // GET /api/upi
@@ -28,9 +30,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
     try {
         
         await connectToDatabase();
-        const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId } = await req.json() as RequestBody;
+        const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId,rangeFrom,rangeTo } = await req.json() as RequestBody;
 
-        const upi = await UpiModel.create({ activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId });
+        const upi = await UpiModel.create({ activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId,rangeFrom, rangeTo });
         if (!upi) {
             return NextResponse.json({ message: 'UPI not saved' }, { status: 400 });
         }
@@ -43,8 +45,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
 // PUT api/upi -- frontent body { upiId: data._id }
 export async function PUT (req: NextRequest, res: NextResponse) {
     try {
-        const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId } = await req.json() as RequestBody;
-        const upi = await UpiModel.findByIdAndUpdate(upiId, { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId }, { new: true });
+        const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId ,rangeFrom,rangeTo} = await req.json() as RequestBody;
+
+        const upi = await UpiModel.findByIdAndUpdate(upiId, { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId,rangeFrom, rangeTo}, { new: true });
         if (!upi) {
             return NextResponse.json({ message: 'UPI not found' }, { status: 404 });
         }

@@ -12,6 +12,8 @@ export interface RequestBody {
   activeDays: string[];
   activeMonths: string[];
   isActive: boolean;
+  rangeFrom: number;  // Ensure this is included
+  rangeTo: number; 
 }
 
 interface updateRequestBody extends RequestBody {
@@ -26,10 +28,10 @@ export async function POST(request: NextRequest, response: NextResponse) {
 
 
 
-    const { beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive } = await request.json() as BankDetailsType;
+    const { beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive, rangeFrom, rangeTo } = await request.json() as BankDetailsType;
 
     console.log("Request body:", {
-      beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive
+      beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive,rangeFrom,rangeTo
     });
 
     // Create new bank detail
@@ -41,7 +43,10 @@ export async function POST(request: NextRequest, response: NextResponse) {
       dailyLimit,
       activeDays,
       activeMonths,
-      isActive
+      isActive,
+      rangeFrom,
+      rangeTo
+      
     });
 
 
@@ -70,7 +75,7 @@ export async function GET(request: NextRequest, response: NextResponse) {
 export async function PUT(request: NextRequest, response: NextResponse) {
   try {
     await connectToDatabase()
-    const { bankID, beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive } = await request.json() as updateRequestBody
+    const { bankID, beneficiaryName, accountNo, IFSCcode, bankName, dailyLimit, activeDays, activeMonths, isActive ,rangeFrom, rangeTo} = await request.json() as updateRequestBody
 
     const updatedBankDetails = await BankModel.findByIdAndUpdate(bankID, {
       beneficiaryName,
@@ -80,6 +85,7 @@ export async function PUT(request: NextRequest, response: NextResponse) {
       dailyLimit,
       activeDays,
       activeMonths,
+      rangeFrom,rangeTo,
       isActive
     }, { new: true })
 
