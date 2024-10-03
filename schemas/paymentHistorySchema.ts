@@ -16,6 +16,7 @@ const paymentHistorySchema = z.object({
   screenshot: z.string().nonempty("Screenshot filename is required"),
   status: Status.default('Pending'),
   transactionId: z.string().optional().default(''),  // New field with default empty string
+  IDbankorUPI: z.string().nonempty("IDbankorUPI is required"),  // New field for either bank ID or UPI ID
 });
 
 // Infer TypeScript type from schema

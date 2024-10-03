@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   
       // Create new payment history
       const newPaymentHistory = await PaymentHistoryModel.create(validatedData);
-  
+      console.log(newPaymentHistory);  
       return NextResponse.json({ message: 'Payment history added', data: newPaymentHistory }, { status: 201 });
     } catch (error: any) {
         console.log(error);

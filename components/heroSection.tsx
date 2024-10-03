@@ -18,6 +18,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     const [utr, setUtr] = useState("");
     const [upiId, setUpiId] = useState({
         beneficiaryName: '',
+        id:'',
         upiId: '',
         qrCode: '',
         dailyLimit: '',
@@ -27,6 +28,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     });
     const [bankDetails, setBankDetails] = useState({
         name: "",
+        id:"",
         accountNo: "",
         ifsc: "",
         bankName: "",
@@ -49,6 +51,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         setBankDetails({
                             name: bankInfo.beneficiaryName,
                             accountNo: bankInfo.accountNo,
+                            id:bankInfo.id,
                             ifsc: bankInfo.IFSCcode,
                             bankName: bankInfo.bankName,
                             qrCodeUrl: bankInfo.qrCode,
@@ -95,29 +98,29 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
 
 
                         for (const upiRecord of result.data) {
-                            // Fetch total approved amount based on beneficiaryName before checking the condition
+                            console.log(upiRecord.id);
                             console.log(upiRecord.beneficiaryName);
-                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.upiId)}`);
+                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.id)}`);
                             const approvedAmountResult = await response.json();
                             const totalApprovedAmountAsNumber = Number(approvedAmountResult.totalApprovedAmount);
                             
                             const dailyLimitAsNumber = Number(upiRecord.dailyLimit);
                             const amountAsNumber = Number(amount);
                             
-                            // Check if the entered amount is within the specified range (rangeFrom and rangeTo)
+                             
                             const rangeFromAsNumber = Number(upiRecord.rangeFrom);
                             const rangeToAsNumber = Number(upiRecord.rangeTo);
                         
-                            // Condition 1: Check if the entered amount is within range
+                             
                             const isWithinRange = amountAsNumber >= rangeFromAsNumber && amountAsNumber <= rangeToAsNumber;
                         
-                            // Condition 2: Check if the total approved + current amount is within daily limit
+                             
                             const isWithinDailyLimit = dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber);
                             
-                            // If both conditions are satisfied, assign the UPI info and exit the loop
+                             
                             if (isWithinRange && isWithinDailyLimit) {
                                 upiInfo = upiRecord;
-                                break; // Exit loop once a matching record is found
+                                break;  
                             }
                         }
                         
@@ -128,6 +131,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         setUpiId({
                             beneficiaryName: upiInfo.beneficiaryName,
                             upiId: upiInfo.upiId,
+                            id:upiInfo.id,
                             qrCode: upiInfo.qrCode,
                             dailyLimit: upiInfo.dailyLimit,
                             activeDays: upiInfo.activeDays,
@@ -139,6 +143,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         setUpiId({
                             beneficiaryName: '',
                             upiId: '',
+                            id:'',
                             qrCode: '',
                             dailyLimit: '',
                             activeDays: [],
@@ -192,7 +197,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     };
    
 
-    const handleSubmit = async (transactionType: string, beneficiaryName :string) => {
+    const handleSubmit = async (transactionType: string, beneficiaryName :string, idOfBankOrUpi:string) => {
         // Validate UTR (Unique Transaction Reference)
         if (utr.length !== 12) {
             alert("Transaction reference number (UTR) must be exactly 12 digits.");
@@ -227,6 +232,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             userName: "saraf",
             mobile: "8624975041",
             utrNo: utr,
+            IDbankorUPI:idOfBankOrUpi,
             beneficiaryName: beneficiaryName,
             paymentType: transactionType, // Either 'Bank Transfer' or 'UPI'
             dateTime: new Date().toISOString(), // Send the date as a string in ISO format
@@ -364,7 +370,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         <div className="mt-12">
                             <button
                                 type="submit"
-                                onClick={() => handleSubmit('UPI', upiId.beneficiaryName)}
+                                onClick={() => handleSubmit('UPI', upiId.beneficiaryName, upiId.id)}
                                 className="py-4 px-4 w-full bg-greenSubmit rounded-lg"
                                 disabled={timeRemaining === 0}
                             >
@@ -471,7 +477,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         <div className="mt-8">
                             <button
                                 type="submit"
-                                onClick={() => handleSubmit('Bank Transfer',bankDetails.name)}
+                                onClick={() => handleSubmit('Bank Transfer',bankDetails.name, bankDetails.id)}
                                 className="py-4 px-4 w-full bg-greenSubmit rounded-lg"
                                 disabled={timeRemaining === 0}
                             >
