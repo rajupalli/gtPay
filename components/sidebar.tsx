@@ -3,14 +3,17 @@
 import React, { useState } from "react";
 import { DashboardContent } from "./DashboardContent";
 import { PaymentMethodsContent } from "./PaymentMethodContent";
+import AddUserForm from './addUserForm';
+import AllUsersContent  from './AllUsersContent';
 import { PaymentHistoryContent } from "./PaymentHistoryContent";
-import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog } from "react-icons/fa";
+import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog, FaUsers, FaUserPlus } from "react-icons/fa";
 import { HelpAndSupport } from "./HelpAndSupport";
-import { UserAdministration } from "./UserAdministration";
 import { Navbar } from "./navbar";
 
 export const Sidebar = () => {
   const [activeItem, setActiveItem] = useState("home");
+  const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false); // New state for tracking the expansion of "User Administration"
+  const [isAddUserFormVisible, setIsAddUserFormVisible] = useState(false); // State to show AddUserForm
 
   return (
     <div>
@@ -54,11 +57,37 @@ export const Sidebar = () => {
             <li
               className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${activeItem === "userAdmin" ? "bg-gray-100" : ""
                 }`}
-              onClick={() => setActiveItem("userAdmin")}
+              onClick={() => {
+                setActiveItem("userAdmin");
+                setIsUserAdminExpanded(!isUserAdminExpanded); // Toggle the expanded state
+              }}
             >
               <FaUserCog className={`text-xl ${activeItem === "userAdmin" ? "text-primary" : "text-black"}`} />
               <span className="text-center">User Administration</span>
             </li>
+            {/* Conditionally render the two additional options when User Administration is expanded */}
+            {isUserAdminExpanded && (
+              <ul className="ml-8 space-y-0">
+                <li
+                  className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${activeItem === "viewAllUsers" ? "bg-gray-100" : ""
+                    }`}
+                  onClick={() => setActiveItem("viewAllUsers")}
+                > <FaUsers className={`text-xl ${activeItem === "userAdmin" ? "text-primary" : "text-black"}`} />
+                  <span className="text-center">View All Users</span>
+                </li>
+                <li
+                  className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${activeItem === "addNewUser" ? "bg-gray-100" : ""
+                    }`}
+                  onClick={() => {
+                    setActiveItem("addNewUser");
+                    setIsAddUserFormVisible(true); // Open the Add User Form modal
+                  }}
+                >
+                  <FaUserPlus className="text-xl" />
+                  <span className="text-center">Add New User</span>
+                </li>
+              </ul>
+            )}
           </ul>
         </div>
 
@@ -68,7 +97,13 @@ export const Sidebar = () => {
           {activeItem === "paymentMethods" && <PaymentMethodsContent />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent />}
           {activeItem === "helpSupport" && <HelpAndSupport />}
-          {activeItem === "userAdmin" && <UserAdministration />}
+          {activeItem === "viewAllUsers" && <AllUsersContent />} {/* Call the AllUsersContent component */}
+
+
+          {/* Modal for Add New User */}
+          {isAddUserFormVisible && (
+            <AddUserForm onClose={() => setIsAddUserFormVisible(false)} />
+          )}
         </div>
       </div>
     </div>
