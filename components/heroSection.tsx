@@ -97,26 +97,30 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                         for (const upiRecord of result.data) {
                             // Fetch total approved amount based on beneficiaryName before checking the condition
                             console.log(upiRecord.beneficiaryName);
-                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.beneficiaryName)}`);
+                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.upiId)}`);
                             const approvedAmountResult = await response.json();
-                            const totalApprovedAmountAsNumber = Number(approvedAmountResult.totalApprovedAmount); 
+                            const totalApprovedAmountAsNumber = Number(approvedAmountResult.totalApprovedAmount);
                             
-                            // if (approvedAmountResult && typeof approvedAmountResult.totalApprovedAmount === 'number') {
-                            //     const totalApprovedAmount = approvedAmountResult.totalApprovedAmount; // Get the total approved amount
-    
-                                // Convert necessary fields to numbers
-                                const dailyLimitAsNumber = Number(upiRecord.dailyLimit);
-                                const amountAsNumber = Number(amount);
-    
-                                // Check the condition based on dailyLimit and totalApprovedAmount
-                                if (dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber)) {
-                                    upiInfo = upiRecord;
-                                    break; // Exit loop once a matching record is found
-                                }
-                            // } else {
-                            //     console.error('Error fetching approved transaction amount.');
-                            // }
+                            const dailyLimitAsNumber = Number(upiRecord.dailyLimit);
+                            const amountAsNumber = Number(amount);
+                            
+                            // Check if the entered amount is within the specified range (rangeFrom and rangeTo)
+                            const rangeFromAsNumber = Number(upiRecord.rangeFrom);
+                            const rangeToAsNumber = Number(upiRecord.rangeTo);
+                        
+                            // Condition 1: Check if the entered amount is within range
+                            const isWithinRange = amountAsNumber >= rangeFromAsNumber && amountAsNumber <= rangeToAsNumber;
+                        
+                            // Condition 2: Check if the total approved + current amount is within daily limit
+                            const isWithinDailyLimit = dailyLimitAsNumber >= (totalApprovedAmountAsNumber + amountAsNumber);
+                            
+                            // If both conditions are satisfied, assign the UPI info and exit the loop
+                            if (isWithinRange && isWithinDailyLimit) {
+                                upiInfo = upiRecord;
+                                break; // Exit loop once a matching record is found
+                            }
                         }
+                        
                     }
     
                     if (upiInfo) {
