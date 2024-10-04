@@ -21,6 +21,8 @@ const BankSchema: Schema = new Schema<bankSchemaType>({
     required: true,
   },
   isActive: { type: Boolean, default: true },
+  rangeFrom: { type: Number, default: 0 },
+  rangeTo: { type: Number, default: 0 },
 });
 
 // Create a virtual 'id' field that maps to '_id'

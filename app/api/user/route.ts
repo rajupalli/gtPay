@@ -1,130 +1,69 @@
-// fetch bank details
-import { NextRequest, NextResponse } from 'next/server';
-import BankModel from '@/model/BankDetails';
-import UpiModel from '@/model/UpiDetails';
-import UserModel from '@/model/UserModel';
+import { NextResponse } from 'next/server';
+import UserModel from '@/model/userDetails';  // Ensure this path is correct
+import { userSchema } from '@/schemas/userSchema';  // Ensure this path is correct
+import bcrypt from 'bcrypt';
 import { connectToDatabase } from '@/lib/dbConnect';
 
-export async function GET(req: NextRequest) {
-    try {
-      await connectToDatabase();
-  
-      const url = new URL(req.url);
-        const amount = url.searchParams.get('amount');
-        const paymentType = url.searchParams.get('paymentType');
-  
-      if (!amount || isNaN(Number(amount))) {
-        return NextResponse.json({ error: 'Amount is required and must be a number.' }, { status: 400 });
-      }
-  
-      const amountNumber = Number(amount);
-  
-      if (paymentType === "UPI") {
-        const upiDetails = await UpiModel.find({}).sort({ dailyLimit: 1 }).exec();
-        if (!upiDetails.length) {
-          return NextResponse.json({ message: 'No UPI details found in the database.' }, { status: 404 });
-        }
-  
-        const suitableUpi = upiDetails.find(upi => Number(upi.dailyLimit) >= amountNumber);
-  
-        if (suitableUpi) {
-          const requiredUPI = await UpiModel.findByIdAndUpdate(suitableUpi._id, {
-            dailyLimit: String(Number(suitableUpi.dailyLimit) - amountNumber)
-          }, { new: true })
-          return NextResponse.json({ data: requiredUPI }, { status: 200 });
-        } else {
-          const upiWithMinLimit = upiDetails[0];
-          const requiredUPI = await UpiModel.findByIdAndUpdate(upiWithMinLimit._id, {
-            dailyLimit: String(Number(upiWithMinLimit.dailyLimit) - amountNumber)
-          }, { new: true })
-          return NextResponse.json({ data: requiredUPI }, { status: 200 });
-        }
-      }
-  
-      const banksSortedByLimit = await BankModel.find({}).sort({ dailyLimit: 1 }).exec();
-  
-      if (!banksSortedByLimit.length) {
-        return NextResponse.json({ message: 'No banks found in the database.' }, { status: 404 });
-      }
-  
-      let suitableBanks: any[] = []; // find sorted list 
 
 
-      banksSortedByLimit.forEach((bank) => {
-        if (Number(bank.dailyLimit) >= amountNumber) {
-          suitableBanks.push(bank);
-        }
-      });
-  
-      // if suitable found - return the first one
-      if (suitableBanks.length > 0) {
-        const requiredBankID = suitableBanks[0]._id;
-        const requiredBank = await BankModel.findByIdAndUpdate(requiredBankID, {
-          dailyLimit: String(Number(suitableBanks[0].dailyLimit) - amountNumber),
-        }, { new: true });
-        return NextResponse.json({ data: requiredBank }, { status: 200 });
-      } else {
-        const bankWithMinLimit = banksSortedByLimit[0];
-        const requiredBank = await BankModel.findByIdAndUpdate(bankWithMinLimit._id, {
-          dailyLimit: String(Number(bankWithMinLimit.dailyLimit) - amountNumber)
-        }, { new: true })
-        return NextResponse.json({ data: requiredBank }, { status: 200 });
-      }
-    } catch (error) {
-      console.error('Error fetching bank details:', error);
-      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-    }
-  }
-
-export async function POST (req: NextRequest, res: NextResponse) {
-    try {
-        await connectToDatabase()
-        const { 
-            beneficiaryName, 
-            accountNo, 
-            IFSCcode, 
-            bankName, 
-            amount, 
-            paymentType, 
-            randomTransactionNumber, 
-            transactionNumber, 
-            upiId, 
-            screenshot
-         } = await req.json() as any;
+export async function GET() {
+  try {
+    // Establish connection to MongoDB
+    await connectToDatabase();
     
-        if(paymentType === "UPI") {
-            const upiDetails = await UserModel.create({
-                upiId,
-                screenshot,
-                amount,
-                transactionNumber,
-                randomTransactionNumber,
-                paymentType,
-            });
-            if(!upiDetails) {
-                return NextResponse.json({ error: 'Error saving UPI details.' }, { status: 400 });
-            }
-            return NextResponse.json({ message: 'UPI details saved', data: upiDetails }, { status: 200 });
-        } 
-        const newBankDetail = await UserModel.create({
-            bankName,
-            beneficiaryName,
-            accountNo,
-            IFSCcode,
-            amount,
-            transactionNumber,
-            randomTransactionNumber,
-            paymentType,
-        });
+    const users = await UserModel.find();  // Fetch all users from the database
+    return NextResponse.json(users, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching users:", error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
 
-        if(!newBankDetail) {
-            return NextResponse.json({ error: 'Error saving bank details.' }, { status: 400 });
-        }
-        return NextResponse.json({ message: 'Bank details saved', data: newBankDetail }, { status: 200 });
-    } catch (error) {
-        console.error('Error is user creation:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+export async function POST(request: Request) {
+  try {
+    // Log incoming request body for debugging
+    const body = await request.json();
+    console.log("Received request body:", body);
+    await connectToDatabase();
+    // Validate the request body using Zod schema
+    const parsedBody = userSchema.parse(body);
+
+    // Log parsed body to ensure it's valid
+    console.log("Parsed body:", parsedBody);
+
+    // Check if a user with the same email or username already exists
+    const existingUser = await UserModel.findOne({ 
+      $or: [{ email: parsedBody.email }, { userName: parsedBody.userName }] 
+    });
+
+    if (existingUser) {
+      console.log("User already exists:", existingUser);
+      return NextResponse.json({ error: 'User with this email or username already exists' }, { status: 400 });
     }
-};
 
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(parsedBody.password, salt);
 
+    // Log hashed password
+    console.log("Hashed password:", hashedPassword);
+
+    // Create a new user
+    const newUser = new UserModel({
+      ...parsedBody,
+      password: hashedPassword,
+    });
+
+    // Save the new user
+    await newUser.save();
+
+    // Log success
+    console.log("User saved successfully:", newUser);
+
+    return NextResponse.json(newUser, { status: 201 });
+  } catch (error: any) {
+    // Log any errors that occur during the request processing
+    console.error("Error adding user:", error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}

@@ -13,19 +13,19 @@ export const AllUsersContent: React.FC = () => {
   const [isEditFormVisible, setIsEditFormVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null); // To hold the user data when editing
 
-  // Fetch all users from the backend API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/users"); // Replace with your actual API endpoint
+        const response = await axios.get("/api/user"); // Correct the API endpoint here
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
-
+  
     fetchUsers();
   }, []);
+  
 
   // Filter and search functionality
   const filteredUsers = users.filter((user) => {

@@ -17,7 +17,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
     phoneNumber: "",
     alternateNumber: "",
   });
-
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   // Pre-fill the form with existing user data if editing
   useEffect(() => {
     if (existingUser) {
@@ -39,11 +39,39 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
-    onClose(); // Close the modal after submission
+    setIsSubmitting(true); // Disable the submit button while submitting
+  
+    try {
+      // Ensure the formData uses the correct field names for the backend schema
+      const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          type: formData.role, // Send the role as 'type'
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+  
+      const result = await response.json();
+      console.log("User added successfully:", result);
+      alert('User added successfully!'); // You can replace this with a modal or any other UI feedback
+    } catch (error) {
+      console.error("Failed to add user:", error);
+      alert('Failed to add user.');
+    } finally {
+      setIsSubmitting(false); // Re-enable the submit button
+      onClose(); // Close the form after submission
+    }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
@@ -128,16 +156,19 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
               className="w-full px-4 py-2 border rounded-lg"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Phone Number</label>
-            <input
-              type="text"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg"
-            />
-          </div>
+                  <div className="mb-4">
+          <label className="block text-gray-700">Phone Number</label>
+          <input
+            type="text"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg"
+            placeholder="Enter 10-digit phone number"
+            pattern="\d{10}" // Optional: Enforce 10 digits in the UI as well
+          />
+        </div>
+
           <div className="mb-4">
             <label className="block text-gray-700">Alternate Number</label>
             <input

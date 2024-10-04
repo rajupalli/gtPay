@@ -39,34 +39,75 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
         const fetchBankDetails = async () => {
             try {
                 const response = await fetch('/api/bank');
-                const result = await response.json(); // Get the whole response object
-                console.log("fetching bank details");
+                const result = await response.json(); // Fetch the result data
+                console.log("Fetching bank details");
                 console.log(result);
     
                 // Check if result.data exists and is an array
                 if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-                    const bankInfo = result.data[0]; // First bank record
+                    let bankInfo = null;
                     
+                    // If amount is 0, choose the default bank record
+                    if (Number(amount) === 0) {
+                        bankInfo = result.data[0];
+                    } else {
+                        for (const bankRecord of result.data) {
+                            console.log(`Checking bank ID: ${bankRecord.id}, Beneficiary: ${bankRecord.beneficiaryName}`);
+                            
+                            // Fetch approved amount for the bank record
+                            const approvedAmountResponse = await fetch(`/api/total-approved-amount/${encodeURIComponent(bankRecord.id)}`);
+                            const approvedAmountResult = await approvedAmountResponse.json();
+                            const totalApprovedAmount = Number(approvedAmountResult.totalApprovedAmount);
+    
+                            const dailyLimit = Number(bankRecord.dailyLimit);
+                            const amountAsNumber = Number(amount);
+                            const rangeFrom = Number(bankRecord.rangeFrom);
+                            const rangeTo = Number(bankRecord.rangeTo);
+                            
+                            // Check if the amount is within the allowed range and daily limit
+                            const isWithinRange = amountAsNumber >= rangeFrom && amountAsNumber <= rangeTo;
+                            const isWithinDailyLimit = dailyLimit >= (totalApprovedAmount + amountAsNumber);
+    
+                            if (isWithinRange && isWithinDailyLimit) {
+                                bankInfo = bankRecord;
+                                break; // Stop the loop when a valid bank is found
+                            }
+                        }
+                    }
+    
+                    // Update bank details if a valid bank is found
                     if (bankInfo) {
                         setBankDetails({
                             name: bankInfo.beneficiaryName,
                             accountNo: bankInfo.accountNo,
-                            id:bankInfo.id,
+                            id: bankInfo.id,
                             ifsc: bankInfo.IFSCcode,
                             bankName: bankInfo.bankName,
                             qrCodeUrl: bankInfo.qrCode,
                         });
                     }
                 } else {
-                    console.error("Bank details are not in the expected format.");
+                    // Handle the case when no valid bank data is available
+                    setBankDetails({
+                        name: "",
+                        id: "",
+                        accountNo: "",
+                        ifsc: "",
+                        bankName: "",
+                        qrCodeUrl: "",
+                    });
+                    console.error("Bank details are not in the expected format or data is missing.");
                 }
             } catch (error) {
+                // Catch and log any errors
                 console.error("Error fetching bank details:", error);
             }
         };
     
+        // Invoke the async function
         fetchBankDetails();
-    }, []);
+    }, [amount]);  // Adding amount to the dependency array to refetch if the amount changes
+    
     
 
 
