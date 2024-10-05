@@ -14,7 +14,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
     const [timeRemaining, setTimeRemaining] = useState(180);
     const [amount, setAmount] = useState("");
- 
+    const [countdown, setCountdown] = useState(45);
     const [utr, setUtr] = useState("");
     const [upiId, setUpiId] = useState({
         beneficiaryName: '',
@@ -237,6 +237,22 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
         }
     };
    
+    const waitFor45Seconds = (): Promise<void> => {
+        return new Promise((resolve) => {
+          let timer = 45;
+          setCountdown(timer);  // Start countdown with 45 seconds
+    
+          const interval = setInterval(() => {
+            timer--;
+            setCountdown(timer);  // Update the countdown state
+    
+            if (timer < 0) {
+              clearInterval(interval);
+              resolve();  // Resolve the promise without a value
+            }
+          }, 1000);  // Update every second
+        });
+      };
 
     const handleSubmit = async (transactionType: string, beneficiaryName :string, idOfBankOrUpi:string) => {
         // Validate UTR (Unique Transaction Reference)
@@ -289,10 +305,12 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             const paymentHistoryId = response.data.data._id; // Assuming the response returns the saved payment history with an _id
             alert('Payment history added successfully!');
           
+            alert('Please wait for 45 seconds. Do not refresh or close the page.');
+            await waitFor45Seconds();
             // Step 2: Check if the refId and amount exist in the message collection
             // Ensure amount is sent as a string because MongoDB stores amount as a string in your schema
             const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}`);
-            await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second
+           /// await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second
             
            
             if (messageCheckResponse.data.found) {
