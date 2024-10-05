@@ -3,12 +3,12 @@ import SignIn from "./sign-in/page";
 
 export default function Home() {
   return (
-    // <section>
-    //   <HomePage />
-    // </section>
-
     <section>
-    <SignIn />
-  </section>
+      <HomePage />
+    </section>
+
+  //   <section>
+  //   <SignIn />
+  // </section>
   );
 }
