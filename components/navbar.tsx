@@ -11,48 +11,47 @@ import NextLink from "next/link";
 import Image from "next/image";
 
 interface NavbarProps {
-  showTransactionId?: boolean; // Add a prop to control the visibility of the transaction ID
-  transactionId?: string; // Transaction ID if it needs to be displayed
+  showTransactionId?: boolean;
+  transactionId?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ showTransactionId = true, transactionId }) => {
   return (
-    <NextUINavbar maxWidth="xl" position="sticky" className="shadow-md">
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Image
-              src="/logo.png"
-              alt="ACME Logo"
-              width={150}
-              height={150}
-              className="object-contain"
-            />
-          </NextLink>
-        </NavbarBrand>
-      </NavbarContent>
+    <NextUINavbar
+      maxWidth="xl"
+      position="sticky"
+      className="shadow-md p-0 m-0 w-full h-auto flex items-center justify-between" // Remove auto-centering
+      style={{ padding: 0, margin: 0 }}  // Ensure no padding/margin
+    >
+      {/* Flexbox container for navbar content */}
+      <div className="flex items-center p-0 m-0" style={{ flexShrink: 0 }}>
+        <NextLink href="/" className="flex items-center p-0 m-0">
+          <Image
+            src="/logo.png" // Replace with actual logo path
+            alt="OTPay Logo"
+            width={150}
+            height={150}
+            className="object-contain p-0 m-0"
+            style={{ paddingLeft: 0, marginLeft: 0 }}
+          />
+        </NextLink>
+      </div>
+
+      <div className="flex-grow"></div>
 
       {/* Conditionally render the transactionId if showTransactionId is true */}
       {showTransactionId && transactionId && (
-        <NavbarContent className="hidden sm:flex basis-1/5 sm:basis-full" justify="end">
+        <div className="hidden sm:flex justify-end p-0 m-0">
           <NavbarItem className="hidden md:flex gap-3">
             <span className="text-black font-bold">Transaction Id: {transactionId}</span>
           </NavbarItem>
-        </NavbarContent>
+        </div>
       )}
 
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
+      {/* Mobile menu toggle */}
+      <div className="sm:hidden p-0 m-0">
         <NavbarMenuToggle className="text-black" />
-      </NavbarContent>
-
-      <NavbarMenu>
-        {/* Conditionally render the transactionId in the mobile menu as well */}
-        {showTransactionId && transactionId && (
-          <div className="mx-4 mt-2 flex flex-col gap-2">
-            <span className="text-black font-bold">Transaction Id: {transactionId}</span>
-          </div>
-        )}
-      </NavbarMenu>
+      </div>
     </NextUINavbar>
   );
 };
