@@ -13,6 +13,7 @@ export interface IUser extends Document {
   alternateNumber?: string;
   type: 'Super Admin' | 'Client' | 'Admin' | 'Banking Manager';
   clientId?: string;  // Optional clientId field, only for 'Client' type
+  appPassword: string; // New field
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -31,6 +32,7 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
     required: true,
   },
   clientId: { type: String, default: null },  // Client ID, null by default
+  appPassword: { type: String, default: '' }, // New appPassword field with default value
 }, { timestamps: true });
 
 // Hash the password before saving the user document

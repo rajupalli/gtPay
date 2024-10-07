@@ -16,6 +16,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
     email: "",
     phoneNumber: "",
     alternateNumber: "",
+    appPassword:""
   });
 
   const [confirmPassword, setConfirmPassword] = useState(""); // Add confirmPassword state
@@ -34,6 +35,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
         email: existingUser.email,
         phoneNumber: existingUser.phoneNumber,
         alternateNumber: existingUser.alternateNumber || "",
+        appPassword:"",
       });
     }
   }, [existingUser]);

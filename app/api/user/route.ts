@@ -18,6 +18,13 @@ export async function GET() {
   }
 }
 
+// Function to generate an 8-digit PIN using timestamp and random number
+function generatePin(): string {
+  const timestamp = Date.now().toString().slice(-5); // Last 5 digits of the timestamp
+  const randomNum = Math.floor(100 + Math.random() * 900); // Generate a 3-digit random number
+  return timestamp + randomNum.toString(); // Combine them to get an 8-digit pin
+}
+
 export async function POST(request: Request) {
   try {
     // Log incoming request body for debugging
@@ -56,23 +63,18 @@ export async function POST(request: Request) {
       console.log("User already exists:", existingUser);
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
-   // Assuming parsedBody.password is '123456'
-console.log("Plain-text password:", parsedBody.password);
 
-// Hash the password
-const salt = await bcrypt.genSalt(10);
-const hashedPassword = await bcrypt.hash(parsedBody.password, salt);
-
-// Log hashed password (this is what should be stored in the database)
-console.log("Hashed password:", hashedPassword);
-
-
- 
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(parsedBody.password, salt);
 
     // Determine if the user is a client and assign a clientId if needed
     let clientId = null; // Default to null for non-client users
+    let appPassword = ''; // Default empty string for non-client users
+    
     if (parsedBody.type === 'Client') {
-      clientId = uuidv4(); // Generate a unique clientId
+      clientId = uuidv4(); // Generate a unique clientId for Client users
+      appPassword = generatePin(); // Generate 8-digit pin for Client users
     }
 
     // Create a new user
@@ -80,6 +82,7 @@ console.log("Hashed password:", hashedPassword);
       ...parsedBody,
       password: hashedPassword,
       clientId: clientId, // Only include clientId for Client users, otherwise null
+      appPassword: appPassword, // Set appPassword (8-digit pin) if the user is a Client
     });
 
     // Save the new user

@@ -13,6 +13,7 @@ const userSchema = z.object({
     errorMap: () => ({ message: "Invalid user type" }),
   }),
   clientId: z.string().optional().nullable(), // Optional in Zod validation
+  appPassword: z.string().default(''), // New appPassword field with default value
 });
 
 // Infer TypeScript type from schema
