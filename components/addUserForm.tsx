@@ -17,7 +17,11 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
     phoneNumber: "",
     alternateNumber: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+
+  const [confirmPassword, setConfirmPassword] = useState(""); // Add confirmPassword state
+  const [passwordError, setPasswordError] = useState(""); // For password mismatch error
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Pre-fill the form with existing user data if editing
   useEffect(() => {
     if (existingUser) {
@@ -39,8 +43,20 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
+  
+    // Check if passwords match
+    if (formData.password !== confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+  
     setIsSubmitting(true); // Disable the submit button while submitting
   
     try {
@@ -57,15 +73,16 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
       });
   
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        const errorData = await response.json(); // Parse the response body for error details
+        throw new Error(errorData.error || `Error: ${response.statusText}`);
       }
   
       const result = await response.json();
       console.log("User added successfully:", result);
       alert('User added successfully!'); // You can replace this with a modal or any other UI feedback
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add user:", error);
-      alert('Failed to add user.');
+      alert('Failed to add user: ' + error.message); // Show detailed error in alert
     } finally {
       setIsSubmitting(false); // Re-enable the submit button
       onClose(); // Close the form after submission
@@ -147,6 +164,18 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
             />
           </div>
           <div className="mb-4">
+            <label className="block text-gray-700">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+            {passwordError && (
+              <p className="text-red-500 mt-2">{passwordError}</p>
+            )}
+          </div>
+          <div className="mb-4">
             <label className="block text-gray-700">Email ID</label>
             <input
               type="email"
@@ -156,18 +185,18 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
               className="w-full px-4 py-2 border rounded-lg"
             />
           </div>
-                  <div className="mb-4">
-          <label className="block text-gray-700">Phone Number</label>
-          <input
-            type="text"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter 10-digit phone number"
-            pattern="\d{10}" // Optional: Enforce 10 digits in the UI as well
-          />
-        </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Phone Number</label>
+            <input
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="Enter 10-digit phone number"
+              pattern="\d{10}" // Optional: Enforce 10 digits in the UI as well
+            />
+          </div>
 
           <div className="mb-4">
             <label className="block text-gray-700">Alternate Number</label>
@@ -185,6 +214,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
             <button
               type="submit"
               className="py-2 px-4 w-full bg-green-500 text-white rounded-lg"
+              disabled={isSubmitting}
             >
               Submit
             </button>

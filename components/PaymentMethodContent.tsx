@@ -36,7 +36,7 @@ export const PaymentMethodsContent: React.FC = () => {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetail[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [editDetail, setEditDetail] = useState<PaymentDetail | null>(null);
-
+  const [editItemId, setEditItemId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -168,6 +168,7 @@ export const PaymentMethodsContent: React.FC = () => {
     resetFormData();
   };
 
+  
   const handleCreateBank = async () => {
     try {
       const response = await axios.post("/api/bank", formData);
@@ -191,12 +192,68 @@ export const PaymentMethodsContent: React.FC = () => {
     }
   };
 
-  const handleEditDetail = (detail: PaymentDetail) => {
-    setEditMode(true);
-    setEditDetail(detail);
-    setFormData(detail);
-    handleOpenModal();
+
+
+  // Update Bank Details
+  const handleUpdateBank = async () => {
+    if (!editItemId) return; // Ensure editItemId (bankID) is set
+  
+    try {
+      const response = await axios.put("/api/bank", {
+        ...formData,
+        bankID: editItemId,  // Pass the bankID as part of the request
+      });
+      const updatedDetail = { ...response.data.data, type: "bank" } as PaymentDetail;
+  
+      const updatedPaymentDetails = paymentDetails.map((detail) =>
+        detail._id === editItemId ? updatedDetail : detail
+      );
+      setPaymentDetails(updatedPaymentDetails);
+      handleCloseModal();  // Close the modal after the update
+    } catch (error) {
+      console.error("Error updating bank details:", error);
+    }
   };
+  
+
+// Update UPI Details
+const handleUpdateUpi = async () => {
+  if (!editItemId) return; // Ensure editItemId (upiId) is set
+
+  try {
+    const response = await axios.put("/api/upi", {
+      ...formData,
+      upiId: editItemId,  // Pass the UPI ID as part of the request
+    });
+
+    const updatedDetail = { ...response.data.data, type: "upi" } as PaymentDetail;
+
+    const updatedPaymentDetails = paymentDetails.map((detail) =>
+      detail.upiId === editItemId ? updatedDetail : detail
+    );
+    setPaymentDetails(updatedPaymentDetails);
+    handleCloseModal();  // Close the modal after the update
+  } catch (error) {
+    console.error("Error updating UPI details:", error);
+  }
+};
+
+
+const handleEditDetail = (detail: PaymentDetail) => {
+  setEditMode(true);
+  setEditDetail(detail);
+
+  // Set editItemId based on whether it's UPI or Bank
+  if (detail.type === "upi") {
+    setEditItemId(detail.upiId);  // Set UPI ID
+  } else if (detail.type === "bank") {
+    setEditItemId(detail._id);  // Set Bank ID (assumed to be _id)
+  }
+
+  setFormData(detail);  // Populate the form with the selected detail
+  handleOpenModal();  // Open the modal
+};
+
 
   const handleDeleteDetail = async (detail: PaymentDetail) => {
     console.log(paymentDetails);
@@ -531,16 +588,17 @@ export const PaymentMethodsContent: React.FC = () => {
               >
                 Close
               </button>
-              <button
-                className="mt-4 bg-greenSubmit text-white px-4 py-2 rounded hover:bg-green-700 border-green-500 w-full"
-                onClick={tabValue === 0 ? handleCreateUpi : handleCreateBank}
-              >
-                {editMode ? "Update" : "Save"}
-              </button>
+          <button
+            className="mt-4 bg-greenSubmit text-white px-4 py-2 rounded hover:bg-green-700 border-green-500 w-full"
+            onClick={tabValue === 1 ? (editMode ? handleUpdateBank : handleCreateBank) : (editMode ? handleUpdateUpi : handleCreateUpi)}
+          >
+            {editMode ? "Update" : "Save"}
+        </button>
+
             </div>
           </div>
         </div>
       )}
     </div>
   );
-};
+}; 

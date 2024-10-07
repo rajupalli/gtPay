@@ -12,6 +12,7 @@ const userSchema = z.object({
   type: z.enum(['Super Admin', 'Client', 'Admin', 'Banking Manager'], {
     errorMap: () => ({ message: "Invalid user type" }),
   }),
+  clientId: z.string().optional().nullable(), // Optional in Zod validation
 });
 
 // Infer TypeScript type from schema

@@ -43,19 +43,32 @@ export async function POST(req: NextRequest, res: NextResponse) {
 };
 
 // PUT api/upi -- frontent body { upiId: data._id }
-export async function PUT (req: NextRequest, res: NextResponse) {
+// PUT api/upi -- Update UPI using the upiId
+export async function PUT(req: NextRequest, res: NextResponse) {
     try {
-        const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId ,rangeFrom,rangeTo} = await req.json() as RequestBody;
-
-        const upi = await UpiModel.findByIdAndUpdate(upiId, { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId,rangeFrom, rangeTo}, { new: true });
-        if (!upi) {
-            return NextResponse.json({ message: 'UPI not found' }, { status: 404 });
-        }
-        return NextResponse.json({ data: upi, message: 'UPI details updated' }, { status: 200 });
+      // Parse the incoming request body
+      const { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, upiId, rangeFrom, rangeTo } = await req.json() as RequestBody;
+  
+      // Find and update the UPI record using upiId
+      const updatedUpi = await UpiModel.findOneAndUpdate(
+        { upiId: upiId },  // Use the upiId to find the document
+        { activeDays, activeMonths, beneficiaryName, dailyLimit, isActive, qrCode, rangeFrom, rangeTo },
+        { new: true }  // Return the updated document
+      );
+  
+      // Check if the UPI record exists
+      if (!updatedUpi) {
+        return NextResponse.json({ message: 'UPI not found' }, { status: 404 });
+      }
+  
+      // Respond with the updated UPI details
+      return NextResponse.json({ data: updatedUpi, message: 'UPI details updated' }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+      // Handle any errors during the update process
+      return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
     }
-};
+  }
+  
 
 export async function DELETE(req: NextRequest, res: NextResponse) {
     try {
