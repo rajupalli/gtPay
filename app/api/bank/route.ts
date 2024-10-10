@@ -80,27 +80,37 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 }
 // read
-export async function GET(req: NextRequest, res: NextResponse) {
-    try {
-        await connectToDatabase();
-        const { searchParams } = new URL(req.url);
-        const clientId = searchParams.get('clientId'); // Retrieve clientId if passed as a query param
-        
-        // Fetch Bank details for a specific client if clientId is passed, otherwise fetch all
-        if (clientId) {
-            const client = await ClientModel.findOne({ clientId }).populate('BankModels');
-            if (!client) {
-                return NextResponse.json({ message: 'Client not found' }, { status: 404 });
-            }
-            return NextResponse.json({ data: client.BankModels, message: 'Bank details fetched' }, { status: 200 });
-        }
+export async function GET(req: NextRequest) {
+  try {
+      // Connect to the database
+      await connectToDatabase();
 
-        // If no clientId, fetch all Bank records
-        const banks = await BankModel.find();
-        return NextResponse.json({ data: banks, message: 'Bank details fetched' }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-    }
+      // Parse the request URL and extract the search parameters
+      const { searchParams } = new URL(req.url);
+      const clientId = searchParams.get('clientId'); // Get clientId from query parameters
+      
+      // If clientId is provided, fetch the client and their bank details
+      if (clientId) {
+          const client = await ClientModel.findOne({ clientId }).populate('BankModels');
+          
+          // If the client is not found, return a 404 response
+          if (!client) {
+              return NextResponse.json({ message: 'Client not found' }, { status: 404 });
+          }
+
+          // Return the client's bank details with a 200 status
+          return NextResponse.json({ data: client.BankModels, message: 'Bank details fetched' }, { status: 200 });
+      } else {
+          // If no clientId is provided, return a 400 response indicating the query param is missing
+          return NextResponse.json({ message: 'clientId query parameter is required' }, { status: 400 });
+      }
+
+  } catch (error) {
+      console.error('Error fetching client or bank details:', error);
+
+      // Return a 500 response in case of any internal errors
+      return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
 }
 
 // update
