@@ -4,7 +4,7 @@ import { userSchema } from '@/schemas/userSchema';  // Ensure this path is corre
 import bcrypt from 'bcrypt';
 import { connectToDatabase } from '@/lib/dbConnect';
 import { v4 as uuidv4 } from 'uuid';
-
+import mongoose from 'mongoose';
 export async function GET() {
   try {
     // Establish connection to MongoDB
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     // Log incoming request body for debugging
     const body = await request.json();
     console.log("Received request body:", body);
-    await connectToDatabase();
-    
+    await connectToDatabase();  // Ensure you're connected to the database
+
     // Validate the request body using Zod schema
     const parsedBody = userSchema.parse(body);
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     // If a user already exists, determine which field caused the conflict
     if (existingUser) {
       let errorMessage = 'User with this email, username, or phone number already exists';
-      
+
       // Check for specific conflicts and set a detailed error message
       if (existingUser.email === parsedBody.email) {
         errorMessage = 'User with this email already exists';
@@ -71,10 +71,26 @@ export async function POST(request: Request) {
     // Determine if the user is a client and assign a clientId if needed
     let clientId = null; // Default to null for non-client users
     let appPassword = ''; // Default empty string for non-client users
-    
+
     if (parsedBody.type === 'Client') {
       clientId = uuidv4(); // Generate a unique clientId for Client users
       appPassword = generatePin(); // Generate 8-digit pin for Client users
+
+      // Create a new client document
+      const newClient = {
+        clientId: clientId,
+        Messages: [],
+        PaymentHistory: [],
+        Users: [],
+        BankModels: [],   
+        UPIModels: []    
+      };
+
+      // Directly insert the new client into the 'clients' collection
+      const clientsCollection = mongoose.connection.collection('clients');
+      await clientsCollection.insertOne(newClient);
+
+      console.log("New client created successfully:", newClient);
     }
 
     // Create a new user

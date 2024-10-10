@@ -9,9 +9,10 @@ const upiSchema = z.object({
   activeDays: z.array(z.string()),
   activeMonths: z.array(z.string()),
   isActive: z.boolean().default(true),
-  // Add new fields for rangeFrom and rangeTo
-  rangeFrom: z.number().default(0),
-  rangeTo: z.number().default(0),
+  // Add new fields for rangeFrom and rangeTo with automatic conversion from string to number
+  rangeFrom: z.union([z.string(), z.number()]).transform((val) => Number(val)).default(0),
+  rangeTo: z.union([z.string(), z.number()]).transform((val) => Number(val)).default(0),
+  clientName: z.string().default(''),  // New field added here
 });
 
 export type UpiDetailsType = z.infer<typeof upiSchema>;

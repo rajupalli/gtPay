@@ -6,32 +6,42 @@ import { FaPlus } from "react-icons/fa";
 import axios from "axios";
 import { RequestBody as BankDetail } from "@/app/api/bank/route";
 import { RequestBody as UpiDetail } from "@/app/api/upi/route";
-
+import { useRouter } from 'next/router';
 type PaymentDetail = BankDetail & UpiDetail & { type: "bank" | "upi"; _id: string };
+interface PaymentMethodProps {
+  clientId: string;
+  
+}
 
-export const PaymentMethodsContent: React.FC = () => {
+
+export const PaymentMethodsContent: React.FC<PaymentMethodProps> = ({ clientId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
-  const [formData, setFormData] = useState<
-    BankDetail | UpiDetail
-  >({
+  const [tabValue, setTabValue] = useState(0); 
+  const [formData, setFormData] = useState<BankDetail | UpiDetail>({
     beneficiaryName: "",
+    clientId: clientId, // Initially set the clientId from the props
     // BankDetail specific fields
-    accountNo: "", // Applicable only for BankDetail
-    IFSCcode: "", // Applicable only for BankDetail
-    bankName: "", // Applicable only for BankDetail
-
-    upiId: "", // Applicable only for UpiDetail
-    qrCode: "", // Applicable only for UpiDetail
-
+    accountNo: "",
+    IFSCcode: "",
+    bankName: "",
+    upiId: "",
+    qrCode: "",
     dailyLimit: "0",
     activeDays: ["Monday", "Tuesday"],
     activeMonths: ["January", "February"],
     isActive: true,
-    // rangeFrom and rangeTo fields
-    rangeFrom: 0, // Corrected naming to match camelCase
-    rangeTo: 0 // Corrected naming to match camelCase
+    rangeFrom: 0,
+    rangeTo: 0,
   });
+  
+  // Add this useEffect to keep clientId in sync with props
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      clientId: clientId,
+    }));
+  }, [clientId]); // Ensure this runs whenever clientId changes
+  
 
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetail[]>([]);
   const [editMode, setEditMode] = useState(false);
@@ -55,8 +65,8 @@ export const PaymentMethodsContent: React.FC = () => {
     try {
       // Fetch both responses concurrently to reduce wait time
       const [bankResponse, upiResponse] = await Promise.all([
-        axios.get("/api/bank"),
-        axios.get("/api/upi")
+        axios.get("/api/bank",{ params: { clientId } }),
+        axios.get("/api/upi", { params: { clientId } })  // Passing clientId as query parameter
       ]);
 
       // Check if responses have the expected structure
@@ -126,11 +136,14 @@ export const PaymentMethodsContent: React.FC = () => {
 
   const handleOpenModal = () => setIsModalOpen(true);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = ({ clientId }: { clientId: string }) => {
     setIsModalOpen(false);
     setEditMode(false);
     setEditDetail(null);
+    
+    // Update form data with the passed clientId and reset other fields
     setFormData({
+      clientId: clientId, // Assign clientId
       beneficiaryName: "",
       accountNo: "", // BankDetail field
       IFSCcode: "", // BankDetail field
@@ -144,11 +157,14 @@ export const PaymentMethodsContent: React.FC = () => {
       rangeFrom: 0,
       rangeTo: 0,
     });
-    resetFormData();
+  
+    resetFormData(); // Call function to reset additional form states if needed
   };
+  
 
   const resetFormData = () => {
     setFormData({
+      clientId:clientId ,
       beneficiaryName: "",
       accountNo: "", // BankDetail field
       IFSCcode: "", // BankDetail field
@@ -174,7 +190,7 @@ export const PaymentMethodsContent: React.FC = () => {
       const response = await axios.post("/api/bank", formData);
       const newDetail = { ...response.data.data, type: "bank" } as PaymentDetail;
       setPaymentDetails([...paymentDetails, newDetail]);
-      handleCloseModal();
+      handleCloseModal({clientId});
     } catch (error) {
       console.error("Error creating bank details:", error);
     }
@@ -186,7 +202,7 @@ export const PaymentMethodsContent: React.FC = () => {
       console.log(formData);
       const newDetail = { ...response.data.data, type: "upi" } as PaymentDetail;
       setPaymentDetails([...paymentDetails, newDetail]);
-      handleCloseModal();
+      handleCloseModal({clientId});
     } catch (error) {
       console.error("Error creating UPI details:", error);
     }
@@ -201,7 +217,8 @@ export const PaymentMethodsContent: React.FC = () => {
     try {
       const response = await axios.put("/api/bank", {
         ...formData,
-        bankID: editItemId,  // Pass the bankID as part of the request
+        bankID: editItemId,
+        clientId:clientId  // Pass the bankID as part of the request
       });
       const updatedDetail = { ...response.data.data, type: "bank" } as PaymentDetail;
   
@@ -209,7 +226,7 @@ export const PaymentMethodsContent: React.FC = () => {
         detail._id === editItemId ? updatedDetail : detail
       );
       setPaymentDetails(updatedPaymentDetails);
-      handleCloseModal();  // Close the modal after the update
+      handleCloseModal({clientId}); // Close the modal after the update
     } catch (error) {
       console.error("Error updating bank details:", error);
     }
@@ -223,7 +240,8 @@ const handleUpdateUpi = async () => {
   try {
     const response = await axios.put("/api/upi", {
       ...formData,
-      upiId: editItemId,  // Pass the UPI ID as part of the request
+      clientId:clientId
+    // Pass the UPI ID as part of the request
     });
 
     const updatedDetail = { ...response.data.data, type: "upi" } as PaymentDetail;
@@ -232,7 +250,7 @@ const handleUpdateUpi = async () => {
       detail.upiId === editItemId ? updatedDetail : detail
     );
     setPaymentDetails(updatedPaymentDetails);
-    handleCloseModal();  // Close the modal after the update
+    handleCloseModal({clientId}); // Close the modal after the update
   } catch (error) {
     console.error("Error updating UPI details:", error);
   }
@@ -259,9 +277,18 @@ const handleEditDetail = (detail: PaymentDetail) => {
     console.log(paymentDetails);
     try {
       if (detail.type === "bank") {
-        await axios.delete("/api/bank", { data: { bankID: detail._id } });
+        await axios.delete("/api/bank", {
+          data: { bankId: detail._id, clientId: clientId }  // Pass the data in the config object under the 'data' property
+        });
+        
       } else {
-        await axios.delete("/api/upi", { data: { upiID: detail._id } }); // Keep passing UPI ID in the body
+        await axios.delete("/api/upi", {
+          data: { 
+            clientId: clientId, // Pass the client ID
+            upiId: detail._id   // Pass the UPI ID to delete the specific UPI
+          }
+        });
+        
       }
       setPaymentDetails(paymentDetails.filter((d) => d._id !== detail._id));
     } catch (error) {
@@ -584,7 +611,7 @@ const handleEditDetail = (detail: PaymentDetail) => {
               </div>
               <button
                 className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 border border-red-500 w-full"
-                onClick={handleCloseModal}
+                onClick={() => handleCloseModal({ clientId })}
               >
                 Close
               </button>

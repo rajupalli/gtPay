@@ -10,22 +10,26 @@ const statusColors: { [key: string]: string } = {
   Pending: "#FFA500",
   Rejected: "#D31812",
 };
+interface PaymentHistoryProps {
+  clientId:string; // Add the prop type for transactionId
+}
 
-export const PaymentHistoryContent = () => {
+export const PaymentHistoryContent = ({clientId }: PaymentHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOption, setFilterOption] = useState("All");
   const [transactionType, setTransactionType] = useState("All");
   const [beneficiaryFilter, setBeneficiaryFilter] = useState("All");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null); // Track selected date
+  const [startDate, setStartDate] = useState<string | null>(null); // Start date for range
+  const [endDate, setEndDate] = useState<string | null>(null); // End date for range
   const [paymentData, setPaymentData] = useState<IPaymentHistory[]>([]); // Use IPaymentHistory directly as type
   const [loading, setLoading] = useState(true); // State to manage loading
   const [menuOpen, setMenuOpen] = useState<string | null>(null); // Track which row's menu is open
-
+  const [error, setError] = useState<string | null>(null); 
   // Fetch payment history from the backend
   useEffect(() => {
     const fetchPaymentHistory = async () => {
       try {
-        const response = await axios.get("/api/payment-history");
+        const response = await axios.get("/api/payment-history", { params: { clientId } });
         const fetchedData = response.data.data.map((item: IPaymentHistory) => ({
           ...item,
           dateTime: new Date(item.dateTime), // Keep as a Date object for comparison
@@ -39,7 +43,7 @@ export const PaymentHistoryContent = () => {
     };
 
     fetchPaymentHistory();
-  }, []);
+  }, [clientId]);
 
   const handleMenuAction = async (action: string, utrNo: string) => {
     try {
@@ -76,27 +80,27 @@ export const PaymentHistoryContent = () => {
     setMenuOpen((prev) => (prev === rowId ? null : rowId));
   };
 
-  // Function to clear date filter
-  const clearDateFilter = () => {
-    setSelectedDate(null); // Reset the selected date
+  // Function to clear date range filter
+  const clearDateRangeFilter = () => {
+    setStartDate(null);
+    setEndDate(null); // Reset the date range
   };
 
   const filteredData = paymentData.filter(row => {
-    const matchesSearch = row.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.mobile.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.utrNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.transactionId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = row.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.utrNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
   
     const matchesFilter = filterOption === "All" || row.status === filterOption;
     const matchesTransactionType = transactionType === "All" || row.paymentType === transactionType;
     const matchesBeneficiary = beneficiaryFilter === "All" || row.beneficiaryName === beneficiaryFilter;
     
-    // Date filter
-    const matchesDate = selectedDate 
-      ? row.dateTime.toISOString().slice(0, 10) === selectedDate 
-      : true;
-
-    return matchesSearch && matchesFilter && matchesTransactionType && matchesBeneficiary && matchesDate;
+    // Date range filter
+    const matchesDateRange = (!startDate || new Date(row.dateTime) >= new Date(startDate)) &&
+                             (!endDate || new Date(row.dateTime) <= new Date(endDate));
+  
+    return matchesSearch && matchesFilter && matchesTransactionType && matchesBeneficiary && matchesDateRange;
   });
   
 
@@ -118,14 +122,22 @@ export const PaymentHistoryContent = () => {
 
       {/* Filters on the right side */}
       <div className="flex space-x-4">
+        {/* Start date input */}
         <input
           type="date"
-          value={selectedDate || ""}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          value={startDate || ""}
+          onChange={(e) => setStartDate(e.target.value)}
           className="p-2 border rounded"
         />
-        <button onClick={clearDateFilter} className="p-2 border rounded bg-red-500 text-white">
-          Clear Date
+        {/* End date input */}
+        <input
+          type="date"
+          value={endDate || ""}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <button onClick={clearDateRangeFilter} className="p-2 border rounded bg-red-500 text-white">
+          Clear Date Range
         </button>
 
         <select

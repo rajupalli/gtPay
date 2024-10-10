@@ -4,18 +4,21 @@ import { Input } from "@nextui-org/input";
 import React, { useEffect, useState } from "react";
 import { FiCopy } from "react-icons/fi";
 import axios from "axios";
-
+import ErrorPopup from './errorPopup';
 
 interface HeroSectionProps {
-    transactionId: string; // Add the prop type for transactionId
+    transactionId: string;
+    mobileNumber:string;
+    clientId:string; // Add the prop type for transactionId
   }
 
-export default function HeroSection({ transactionId }: HeroSectionProps) {
+export default function HeroSection({ transactionId, mobileNumber,clientId }: HeroSectionProps) {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
     const [timeRemaining, setTimeRemaining] = useState(180);
     const [amount, setAmount] = useState("");
     const [countdown, setCountdown] = useState(45);
     const [utr, setUtr] = useState("");
+    const [error, setError] = useState<string | null>(null); 
     const [upiId, setUpiId] = useState({
         beneficiaryName: '',
         id:'',
@@ -115,7 +118,7 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
         const fetchUpiDetails = async () => {
             console.log('Fetching UPI details');
             try {
-                const response = await fetch('/api/upi'); // Assuming this is the correct route for your GET UPI API
+                const response = await fetch(`/api/upi?clientId=${encodeURIComponent(clientId)}`); // Assuming this is the correct route for your GET UPI API
                 const result = await response.json();
     
                 console.log('Fetching UPI details');
@@ -272,10 +275,11 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
 
           // Check if UTR already exists in the backend
     try {
-        const utrCheckResponse = await axios.get(`/api/payment-history/checkUtr?utrNo=${utr}`);
+        const utrCheckResponse = await axios.get(`/api/payment-history/checkUtr?utrNo=${utr}&clientId=${clientId}`);
+
 
         if (utrCheckResponse.data.exists) {
-            alert('UTR number already exists');
+            setError('UTR number already exits'); // Set the error state
             return; // Stop the execution if UTR exists
         }
     } catch (error) {
@@ -287,16 +291,17 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
         // Prepare the data to be sent to the backend
         const paymentHistoryData = {
             userName: "saraf",
-            mobile: "8624975041",
+            mobile: mobileNumber, 
             utrNo: utr,
-            IDbankorUPI:idOfBankOrUpi,
+            IDbankorUPI:idOfBankOrUpi, 
             beneficiaryName: beneficiaryName,
             paymentType: transactionType, // Either 'Bank Transfer' or 'UPI'
             dateTime: new Date().toISOString(), // Send the date as a string in ISO format
             amount: Number(amount), // Ensure amount is passed as a number
             screenshot: 'screenshot', // Provide the actual screenshot path or filename
             status: "Pending",
-            transactionId:transactionId // Default status
+            transactionId:transactionId,
+            clientId:clientId // Default status
         };
           console.log(paymentHistoryData);
         try {
@@ -309,21 +314,23 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
             await waitFor45Seconds();
             // Step 2: Check if the refId and amount exist in the message collection
             // Ensure amount is sent as a string because MongoDB stores amount as a string in your schema
-            const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}`);
+            const messageCheckResponse = await axios.get(`/api/messages?referenceId=${utr}&amount=${Number(amount)}&clientId=${clientId}`);
+
            /// await new Promise(resolve => setTimeout(resolve, 1000));  // Wait for 1 second
             
            
-            if (messageCheckResponse.data.found) {
+            if (messageCheckResponse.data.found) { 
                 console.log(paymentHistoryId);
                 // Step 3: If found, update the payment history status to "Approved"
-                await axios.put(`/api/payment-history/${paymentHistoryId}`, {
-                    status: "Approved"
+                await axios.put(`/api/payment-history/${paymentHistoryId}?clientId=${clientId}`, { 
+                    status1: "Approved"
                   });
+                  
                   
                   
                 alert('Payment history updated to Approved!');
             } else {
-                alert('No matching message found for the payment history.');
+                setError('No matching message found for the payment history.');
             }
            
         } catch (error: unknown) {
@@ -331,16 +338,16 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                 // Axios-specific error handling
                 if (error.response) {
                     console.error('Server error:', error.response.data);
-                    alert(`Error: ${error.response.data.message}`);
+                    setError(`Error: ${error.response.data.message}`);
                 } else if (error.request) {
                     console.error('No response received:', error.request);
-                    alert('No response received from server.');
+                    setError('No response received from server.');
                 } else {
-                    console.error('Axios error:', error.message);
+                    setError(`Axios error:, ${error.message}`);
                     alert('An error occurred while adding payment history.');
                 }
             } else {
-                console.error('Unexpected error:', error);
+                setError(`Unexpected error: ${error}`);
                 alert('An unexpected error occurred.');
             }
         }finally {
@@ -601,6 +608,8 @@ export default function HeroSection({ transactionId }: HeroSectionProps) {
                     className="w-full h-full object-cover"
                 />
             </div>
+
+            {error && <ErrorPopup error={error} />}
         </div>
     );
 }

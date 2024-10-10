@@ -6,7 +6,7 @@ interface upiSchemaType extends Document, UpiDetailsType {
 }
 
 // Create the schema
-const UpiSchema: Schema = new Schema<upiSchemaType>({
+const UpiSchema: Schema<upiSchemaType> = new Schema<upiSchemaType>({
   beneficiaryName: { type: String, required: true },
   upiId: { type: String, required: true },
   qrCode: { type: String, required: true },
@@ -22,6 +22,7 @@ const UpiSchema: Schema = new Schema<upiSchemaType>({
   isActive: { type: Boolean, default: true },
   rangeFrom: { type: Number, default: 0 },
   rangeTo: { type: Number, default: 0 },
+  clientName: { type: String, default: '' },  // New field added here
 });
 
 // Create a virtual 'id' field that maps to '_id'
@@ -29,11 +30,13 @@ UpiSchema.virtual('id').get(function (this: { _id: mongoose.Types.ObjectId }) {
   return this._id.toHexString();
 });
 
-
 // Ensure virtual fields are serialized
 UpiSchema.set('toJSON', { virtuals: true });
 
 // Create the model
 const UpiModel = mongoose.models.UpiModel || mongoose.model<upiSchemaType>('UpiModel', UpiSchema);
 
+// Correctly re-exporting the type with 'export type'
+export type { upiSchemaType };
+export { UpiSchema };
 export default UpiModel;

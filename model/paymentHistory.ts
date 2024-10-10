@@ -12,7 +12,9 @@ export interface IPaymentHistory extends Document {
   screenshot: string;
   status: 'Pending' | 'Rejected' | 'Approved';
   transactionId: string;
-  IDbankorUPI: string;  // New field
+  IDbankorUPI: string;
+  clientId: string;       // New field
+  clientName: string;     // New field
 }
 
 // Define the Mongoose schema for the PaymentHistory
@@ -26,15 +28,15 @@ const PaymentHistorySchema: Schema<IPaymentHistory> = new Schema<IPaymentHistory
   amount: { type: Number, required: true },
   screenshot: { type: String, required: true },
   status: { type: String, enum: ['Pending', 'Rejected', 'Approved'], default: 'Pending' },
-  transactionId: { type: String, default: '' },  // New field with default empty string
-  IDbankorUPI: { type: String, required: true },  // New field for either bank ID or UPI ID
+  transactionId: { type: String, default: '' },
+  IDbankorUPI: { type: String, required: true },
+  clientId: { type: String, required: true },   // New field
+  clientName: { type: String, required: true }, // New field
 }, { versionKey: false });
 
-// Ensure an `_id` field is defined correctly
 PaymentHistorySchema.set('toObject', { virtuals: true });
 PaymentHistorySchema.set('toJSON', { virtuals: true });
 
-// Create and export the PaymentHistory model
 const PaymentHistoryModel = mongoose.models.PaymentHistory || mongoose.model<IPaymentHistory>('PaymentHistory', PaymentHistorySchema);
 
 export default PaymentHistoryModel;

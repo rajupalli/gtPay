@@ -9,12 +9,14 @@ import { PaymentHistoryContent } from "./PaymentHistoryContent";
 import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog, FaUsers, FaUserPlus } from "react-icons/fa";
 import { HelpAndSupport } from "./HelpAndSupport";
 import { Navbar } from "./navbar";
+import { useParams } from 'next/navigation';
+
 
 export const Sidebar = () => {
   const [activeItem, setActiveItem] = useState("home");
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false); // New state for tracking the expansion of "User Administration"
   const [isAddUserFormVisible, setIsAddUserFormVisible] = useState(false); // State to show AddUserForm
-
+  const { clientId } = useParams(); 
   return (
     <div>
       <Navbar showTransactionId={false} />
@@ -94,12 +96,10 @@ export const Sidebar = () => {
         {/* Content */}
         <div className="ml-64 p-10 w-full">
           {activeItem === "home" && <DashboardContent />}
-          {activeItem === "paymentMethods" && <PaymentMethodsContent />}
-          {activeItem === "paymentHistory" && <PaymentHistoryContent />}
+          {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
+          {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
           {activeItem === "viewAllUsers" && <AllUsersContent />} {/* Call the AllUsersContent component */}
-
-
           {/* Modal for Add New User */}
           {isAddUserFormVisible && (
             <AddUserForm onClose={() => setIsAddUserFormVisible(false)} />

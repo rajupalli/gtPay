@@ -5,13 +5,20 @@ import { Navbar } from "@/components/navbar";
 import { useEffect, useState } from "react";
 
 
-export default function HomePage() {
+
+interface HomePageProps {
+  clientId: string;
+  mobileNumber: string;
+}
+
+
+export default function HomePage({ clientId, mobileNumber }: HomePageProps) {
   const [transactionId, setTransactionId] = useState('');
 
 
   useEffect(() => {
     // Function to generate a 12-digit transaction ID
-    const generateTransactionId = () => {
+    const generateTransactionId = () => { 
       const timestamp = Date.now().toString().slice(-8); // Take the last 8 digits of the timestamp
       const randomDigits = Math.floor(10000 + Math.random() * 90000).toString(); // Random 5 digits
       return timestamp + randomDigits; // Concatenate the timestamp and random digits
@@ -29,7 +36,7 @@ export default function HomePage() {
   return (
     <div>
       <Navbar transactionId={transactionId} />
-      <HeroSection transactionId={transactionId} />
+      <HeroSection transactionId={transactionId} mobileNumber={mobileNumber} clientId={clientId}/>
     </div>
   );
 }

@@ -3,51 +3,56 @@
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useParams } from 'next/navigation';  // Import useParams to access dynamic route segments
 
 export default function SignIn() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');  // Assuming this is the mobile number
   const [password, setPassword] = useState('');
+
+   
+  const { clientId } = useParams();   
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
     if (username && password) {
-        try {
-            // Make a POST request to the login API
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userName: username,
-                    password: password,
-                }),
-            });
+      try {
+        // Make a POST request to the login API
+        // const response = await fetch('/api/login', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        //   body: JSON.stringify({
+        //     userName: username,
+        //     password: password,
+        //   }),
+        // });
 
-            // Check if the login was successful
-            if (response.ok) {
-                const data = await response.json();
-                const { token } = data;
+        // Check if the login was successful
+        if (password === 'Test@1234') {
+         
+          //const { token } = data;
 
-                // // Store the JWT token in localStorage or cookies
-                // localStorage.setItem('token', token);
+          // Store the JWT token if needed
+          // localStorage.setItem('token', token);
 
-                // // Navigate to the dashboard after login
-                // router.push('/dashboard');
-            } else {
-                const errorData = await response.json();
-                alert(errorData.message || 'Login failed');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            alert('Something went wrong, please try again later.');
+          // After successful login, redirect to the payment page with UUID and mobile number
+          router.push(`/${clientId}/${username}`);  // Append mobile number to the URL
+        } else {
+          
+          alert(  'Wrong Login failed');
         }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Something went wrong, please try again later.');
+      }
     } else {
-        alert('Please provide both username and password.');
+      alert('Please provide both username and password.');
     }
-};
+  };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -62,12 +67,16 @@ export default function SignIn() {
             className="object-contain"
           />
         </div>
-        <h1 className="text-2xl font-bold text-center mb-6">Welcome to TPay</h1>
+
+        
+
+        <h1 className="text-2xl font-bold text-center mb-6">Welcome to payment page</h1>
+
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Username (Mobile Number)"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
