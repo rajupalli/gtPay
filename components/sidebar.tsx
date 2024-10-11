@@ -90,6 +90,7 @@ export const Sidebar = () => {
                 </li>
               </ul>
             )}
+    
           </ul>
         </div>
 
@@ -99,10 +100,13 @@ export const Sidebar = () => {
           {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
-          {activeItem === "viewAllUsers" && <AllUsersContent />} {/* Call the AllUsersContent component */}
+          {activeItem === "viewAllUsers" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
           {/* Modal for Add New User */}
           {isAddUserFormVisible && (
-            <AddUserForm onClose={() => setIsAddUserFormVisible(false)} />
+           <AddUserForm 
+           onClose={() => setIsAddUserFormVisible(false)}
+           clientId={Array.isArray(clientId) ? clientId[0] : clientId}  // Pass clientId as a prop here
+         />
           )}
         </div>
       </div>

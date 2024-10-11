@@ -3,10 +3,11 @@ import { IUser } from "@/model/userDetails"; // Adjust the path to where IUser i
 
 interface AddUserFormProps {
   onClose: () => void;
-  existingUser?: IUser | null; // Optional prop to pre-fill the form for editing
+  existingUser?: IUser | null; 
+  clientId: string;
 }
 
-const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
+const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser,clientId  }) => {
   const [formData, setFormData] = useState({
     role: "Super Admin",
     name: "",
@@ -70,7 +71,8 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser }) => {
         },
         body: JSON.stringify({
           ...formData,
-          type: formData.role, // Send the role as 'type'
+          type: formData.role,
+          clientId:clientId // Send the role as 'type'
         }),
       });
   

@@ -6,7 +6,12 @@ import AddUserForm from "./addUserForm";
 import { FaPen } from "react-icons/fa"; // Import pencil icon
 import { IUser } from "@/model/userDetails"; // Import the IUser interface
 
-export const AllUsersContent: React.FC = () => {
+
+interface AllUsersContentProps {
+  clientId: string; // Expect clientId as a prop
+}
+
+export const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
@@ -16,7 +21,11 @@ export const AllUsersContent: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/user"); // Correct the API endpoint here
+        const response = await axios.get(`/api/user`, {
+          params: {
+            clientId: clientId, // Pass clientId as a query parameter
+          },
+        }); // Correct the API endpoint here
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -110,7 +119,7 @@ export const AllUsersContent: React.FC = () => {
         <AddUserForm
           onClose={() => setIsEditFormVisible(false)}
           existingUser={selectedUser} // Pass the selected user as a prop to pre-fill the form
-        />
+          clientId={""}        />
       )}
     </div>
   );
