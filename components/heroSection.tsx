@@ -144,7 +144,10 @@ export default function HeroSection({ transactionId, mobileNumber,clientId }: He
                         for (const upiRecord of result.data) {
                             console.log(upiRecord.id);
                             console.log(upiRecord.beneficiaryName);
-                            const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.id)}`);
+                            console.log(clientId);
+                           // Sending clientId as a query parameter
+                           const response = await fetch(`/api/total-approved-amount/${encodeURIComponent(upiRecord.id)}?clientId=${encodeURIComponent(clientId)}`);
+                           console.log(response.body);  
                             const approvedAmountResult = await response.json();
                             const totalApprovedAmountAsNumber = Number(approvedAmountResult.totalApprovedAmount);
                             
@@ -205,7 +208,7 @@ export default function HeroSection({ transactionId, mobileNumber,clientId }: He
         };
     
         fetchUpiDetails(); // Fetch UPI details by default or when amount changes
-    }, [ amount]); // Ensure it re-fetches if these values change
+    }, [ amount,clientId]); // Ensure it re-fetches if these values change
     
 
 

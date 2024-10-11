@@ -95,7 +95,7 @@ export const Sidebar = () => {
 
         {/* Content */}
         <div className="ml-64 p-10 w-full">
-          {activeItem === "home" && <DashboardContent />}
+          {activeItem === "home" && <DashboardContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}

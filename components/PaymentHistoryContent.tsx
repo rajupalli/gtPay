@@ -50,7 +50,7 @@ export const PaymentHistoryContent = ({clientId }: PaymentHistoryProps) => {
       if (action === 'Approved' || action === 'Rejected') {
         const response = await axios.put(`/api/payment-history`, {
           utrNo: utrNo,
-          status: action
+          status: action, clientId:clientId
         });
   
         if (response.status === 200) {

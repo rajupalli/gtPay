@@ -192,15 +192,13 @@ export async function DELETE(request: NextRequest) {
  }
 
  
-  
-// Update payment history by UTR (PUT /api/payment-history)
+ // Update payment history by UTR (PUT /api/payment-history)
 export async function PUT(request: NextRequest) {
   try {
     await connectToDatabase(); // Ensure the database is connected
 
-    const updateData = await request.json(); // Remaining update data (e.g., utrNo, status)
-
-    const { utrNo, status } = updateData;
+    const updateData = await request.json(); // Remaining update data (e.g., utrNo, status, clientId)
+    const { utrNo, status, clientId } = updateData;
 
     // Check if utrNo is provided
     if (!utrNo) {
@@ -212,23 +210,26 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid status value' }, { status: 400 });
     }
 
-    // Find and update payment history by UTR number
-    const updatedPaymentHistory = await PaymentHistoryModel.findOneAndUpdate(
-      { utrNo }, // Query using UTR number
-      { status }, // Update status
-      { new: true } // Return the updated document
+    
+    // Update the client's payment history by UTR
+    const updatedClient = await ClientModel.findOneAndUpdate(
+      { clientId, 'PaymentHistory.utrNo': utrNo }, // Find the client and the payment history by UTR
+      { $set: { 'PaymentHistory.$.status': status } }, // Update the status in the client's payment history
+      { new: true }
     );
 
-    if (!updatedPaymentHistory) {
-      return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
+    if (!updatedClient) {
+      return NextResponse.json({ message: 'Client not found or no matching payment history' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Payment history updated', data: updatedPaymentHistory }, { status: 200 });
+    return NextResponse.json(
+      { message: 'Payment history updated in both PaymentHistory and client', data: updatedClient },
+      { status: 200 }
+    );
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
     }
     return NextResponse.json({ message: 'Error updating payment history', error: error.message }, { status: 500 });
   }
- }
-
+}
