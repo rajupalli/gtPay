@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith('/dashboard');
+  const isDashboard = /^\/dashboard\/[^\/]+$/.test(pathname);
 
   return (
     <ClerkProvider>

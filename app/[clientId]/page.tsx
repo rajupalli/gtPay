@@ -2,13 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';  // Import useParams to access dynamic route segments
 
 export default function SignIn() {
   const router = useRouter();
   const [username, setUsername] = useState('');  // Assuming this is the mobile number
   const [password, setPassword] = useState('');
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
 
    
   const { clientId } = useParams();   
@@ -54,8 +55,56 @@ export default function SignIn() {
     }
   };
 
+  const handleCloseSite = () => {
+    window.close();
+  };
+
+  
+  useEffect(() => {
+    const checkClientId = async () => {
+      try {
+        const response = await fetch(`/api/checkClientId?clientId=${clientId}`);
+        const data = await response.json();
+
+        if (!data.exists) {
+          setShowErrorPopup(true); // Show the error popup if clientId is not found
+        }
+      } catch (error) {
+        console.error("Error checking client ID:", error);
+        setShowErrorPopup(true); // Handle error by showing the error popup
+      }
+    };
+
+    if (clientId) {
+      checkClientId();
+    } else {
+      setShowErrorPopup(true); // Show popup if clientId is missing
+    }
+  }, [clientId]);
+
+
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+
+    <div>
+
+{showErrorPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md text-center">
+            <h2 className="text-lg font-bold mb-4">Error</h2>
+            <p className="mb-4">Client ID is invalid or missing. Please check the URL and try again.</p>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded"
+              onClick={handleCloseSite}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+{!showErrorPopup && (
+        <>
+         <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <div className="flex justify-center mb-4">
           {/* Logo Image */}
@@ -102,5 +151,10 @@ export default function SignIn() {
         </form>
       </div>
     </div>
+        
+        </>
+      )}
+    </div>
+   
   );
 }

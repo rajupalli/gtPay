@@ -44,18 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ showTransactionId = true, transa
         </NextLink>
       </div>
 
-      {/* Dropdown beside the logo */}
-      <div className="ml-4">
-        <select
-          className="p-2 border rounded text-black"
-          value={selectedClient}
-          onChange={handleClientChange}
-        >
-          <option value="client1">Client 1</option>
-          <option value="client2">Client 2</option>
-          <option value="client3">Client 3</option>
-        </select>
-      </div>
+      
 
       <div className="flex-grow"></div>
 
