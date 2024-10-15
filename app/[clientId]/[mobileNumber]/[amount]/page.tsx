@@ -7,11 +7,12 @@ import { Navbar } from "@/components/navbar";
 
 export default function Home() {
   // Extract parameters from the URL
-  const { clientId, mobileNumber } = useParams();
+  const { clientId, mobileNumber, amount } = useParams();
 
   // Ensure clientId and mobileNumber are strings (handle if they are arrays)
   const clientIdString = Array.isArray(clientId) ? clientId[0] : clientId;
   const mobileNumberString = Array.isArray(mobileNumber) ? mobileNumber[0] : mobileNumber;
+  const amountString = Array.isArray(amount) ? amount[0] : amount;
 
   // State for transaction ID
   const [transactionId, setTransactionId] = useState<string>('');  // Explicit type for state
@@ -32,7 +33,7 @@ export default function Home() {
   return (
     <div>
       <Navbar transactionId={transactionId} />
-      <HeroSection transactionId={transactionId} mobileNumber={mobileNumberString} clientId={clientIdString} />
+      <HeroSection transactionId={transactionId} mobileNumber={mobileNumberString} clientId={clientIdString} amount={amountString} />
     </div>
   );
 }

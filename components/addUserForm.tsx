@@ -8,14 +8,15 @@ interface AddUserFormProps {
   clientId: string;
 }
 
-const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, clientId }) => {
-
-
-  const roleOptions = clientId === "superAdmin"
-  ? ["Super Admin", "Client"]
-  : ["Admin", "Banking Manager"];
-
-
+const AddUserForm: React.FC<AddUserFormProps> = ({
+  onClose,
+  existingUser,
+  clientId,
+}) => {
+  const roleOptions =
+    clientId === "superAdmin"
+      ? ["Super Admin", "Client"]
+      : ["Admin", "Banking Manager"];
 
   const [formData, setFormData] = useState({
     role: roleOptions[0],
@@ -28,10 +29,6 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, client
     alternateNumber: "",
     appPassword: "",
   });
-
-
-
-
 
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -53,7 +50,9 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, client
     }
   }, [existingUser]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -63,18 +62,24 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, client
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError("");
-
+    e.preventDefault(); // Prevent form default behavior
+    setPasswordError(""); // Clear previous password error
+  
+    // Check if passwords match
     if (formData.password !== confirmPassword) {
       setPasswordError("Passwords do not match.");
       return;
     }
-
-    setIsSubmitting(true);
-
+  
+    setIsSubmitting(true); // Indicate form is submitting
+  
     try {
-      const response = await fetch("/api/user", {
+      // Determine the correct API route based on clientId
+      const apiUrl = clientId === "superAdmin" ? "/api/user" : "/api/ClientAdmin";
+      console.log(formData);
+      console.log(apiUrl);
+      // Make the API request
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,15 +87,17 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, client
         body: JSON.stringify({
           ...formData,
           type: formData.role,
-          clientId: clientId,
+          clientId,
         }),
       });
-
+  
+      // Handle non-OK responses
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Error: ${response.statusText}`);
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
       }
-
+  
+      // Handle successful response
       const result = await response.json();
       console.log("User added successfully:", result);
       alert("User added successfully!");
@@ -98,95 +105,114 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onClose, existingUser, client
       console.error("Failed to add user:", error);
       alert("Failed to add user: " + error.message);
     } finally {
-      setIsSubmitting(false);
-      onClose();
+      setIsSubmitting(false); // Stop submission indicator
+      onClose(); // Close the form modal
     }
   };
+  
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-800">Add New User</h2>
-         
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Role */}
-      <div>
-  <label className="block text-sm font-medium text-gray-700">Role</label>
-  <select
-    name="role"
-    value={formData.role}
-    onChange={handleChange}
-    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-  >
-    {roleOptions.map((role) => (
-      <option key={role} value={role}>
-        {role}
-      </option>
-    ))}
-  </select>
-</div>
-
-
-        {/* Input Fields */}
-        {["name", "companyName", "userName", "email", "phoneNumber", "alternateNumber"].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-700 capitalize">
-              {field.replace(/([A-Z])/g, " $1")}
-            </label>
-            <input
-              type={field.includes("Number") ? "tel" : "text"}
-              name={field}
-              value={formData[field as keyof typeof formData]}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-              placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
-            />
-          </div>
-        ))}
-
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-            placeholder="Enter password"
-          />
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-            placeholder="Confirm password"
-          />
-          {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
-        </div>
-
-        {/* Submit Button */}
-        <div>
-          <button
-            type="submit"
-            className={`w-full py-2 px-4 text-white rounded-lg ${
-              isSubmitting ? "bg-green-300" : "bg-green-500 hover:bg-green-600"
-            }`}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Submitting..." : "Submit"}
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold text-gray-800">
+            {existingUser ? "Edit User" : "Add New User"}
+          </h2>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-900">
+            <AiOutlineClose size={24} />
           </button>
         </div>
-      </form>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Role</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+            >
+              {roleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Input Fields - Two fields per row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {["name", "companyName", "userName", "email", "phoneNumber", "alternateNumber"].map(
+              (field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-700 capitalize">
+                    {field.replace(/([A-Z])/g, " $1")}
+                  </label>
+                  <input
+                    type={field.includes("Number") ? "tel" : "text"}
+                    name={field}
+                    value={formData[field as keyof typeof formData]}
+                    onChange={handleChange}
+                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                    placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
+                  />
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                placeholder="Enter password"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={handleConfirmPasswordChange}
+                className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                placeholder="Confirm password"
+              />
+              {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`py-2 px-4 text-white rounded-lg ${
+                isSubmitting ? "bg-green-300" : "bg-green-500 hover:bg-green-600"
+              }`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -9,18 +9,28 @@ import {
 } from "@nextui-org/navbar";
 import NextLink from "next/link";
 import Image from "next/image";
-import { useState } from "react"; // Import useState for dropdown selection
+import { useState } from "react";
 
 interface NavbarProps {
   showTransactionId?: boolean;
   transactionId?: string;
+   // Add a prop to control the visibility of the logout button
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ showTransactionId = true, transactionId }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  showTransactionId = true,
+  transactionId,
+ 
+}) => {
   const [selectedClient, setSelectedClient] = useState("client1"); // State to manage the selected client
 
   const handleClientChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedClient(event.target.value);
+  };
+
+  const handleLogout = () => {
+    // Implement your logout logic here (e.g., clear session, redirect to login, etc.)
+    console.log("User logged out");
   };
 
   return (
@@ -44,15 +54,29 @@ export const Navbar: React.FC<NavbarProps> = ({ showTransactionId = true, transa
         </NextLink>
       </div>
 
-      
-
       <div className="flex-grow"></div>
 
       {/* Conditionally render the transactionId if showTransactionId is true */}
       {showTransactionId && transactionId && (
         <div className="hidden sm:flex justify-end p-0 m-0">
           <NavbarItem className="hidden md:flex gap-3">
-            <span className="text-black font-bold">Transaction Id: {transactionId}</span>
+            <span className="text-black font-bold">
+              Transaction Id: {transactionId}
+            </span>
+          </NavbarItem>
+        </div>
+      )}
+
+      {/* Conditionally render the logout button */}
+      {!showTransactionId && (
+        <div className="hidden sm:flex justify-end p-0 m-0">
+          <NavbarItem className="hidden md:flex gap-3">
+            <button
+              onClick={handleLogout}
+              className="text-black font-bold px-4 py-2 border rounded-md hover:bg-gray-200"
+            >
+              Logout
+            </button>
           </NavbarItem>
         </div>
       )}

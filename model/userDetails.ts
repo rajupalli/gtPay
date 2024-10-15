@@ -14,6 +14,7 @@ export interface IUser extends Document {
   type: 'Super Admin' | 'Client' | 'Admin' | 'Banking Manager';
   clientId?: string;  // Optional clientId field, only for 'Client' type
   appPassword: string; // New field
+  domain:string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -67,3 +68,8 @@ UserSchema.set('toJSON', {
 const UserModel = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default UserModel;
+
+
+
+
+ 

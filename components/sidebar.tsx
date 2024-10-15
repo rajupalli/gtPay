@@ -10,6 +10,7 @@ import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog, 
 import { HelpAndSupport } from "./HelpAndSupport";
 import { Navbar } from "./navbar";
 import { useParams } from 'next/navigation';
+import ProfileContent from "./profileContent";
 
 
 export const Sidebar = () => {
@@ -118,29 +119,7 @@ export const Sidebar = () => {
               <FaUserCog className={`text-xl ${activeItem === "userAdmin" ? "text-primary" : "text-black"}`} />
               <span className="text-center">User Administration</span>
             </li>
-            {/* Conditionally render the two additional options when User Administration is expanded */}
-            {isUserAdminExpanded && (
-              <ul className="ml-8 space-y-0">
-                <li
-                  className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${activeItem === "viewAllUsers" ? "bg-gray-100" : ""
-                    }`}
-                  onClick={() => setActiveItem("viewAllUsers")}
-                > <FaUsers className={`text-xl ${activeItem === "userAdmin" ? "text-primary" : "text-black"}`} />
-                  <span className="text-center">View All Users</span>
-                </li>
-                <li
-                  className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${activeItem === "addNewUser" ? "bg-gray-100" : ""
-                    }`}
-                  onClick={() => {
-                    setActiveItem("addNewUser");
-                    setIsAddUserFormVisible(true); // Open the Add User Form modal
-                  }}
-                >
-                  <FaUserPlus className="text-xl" />
-                  <span className="text-center">Add New User</span>
-                </li>
-              </ul>
-            )}
+          
       <li
                   className={`cursor-pointer p-2 flex items-center space-x-4 rounded ${
                     activeItem === "profile" ? "bg-gray-100" : ""
@@ -159,16 +138,8 @@ export const Sidebar = () => {
           {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
-          {activeItem === "viewAllUsers" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
-          {/* Modal for Add New User */}
-          {isAddUserFormVisible && (
-           activeItem === "addNewUser" && <AddUserForm 
-           onClose={() => setIsAddUserFormVisible(false)}
-           clientId={Array.isArray(clientId) ? clientId[0] : clientId}  // Pass clientId as a prop here
-         />
-          )}
-
-          {/* {activeItem === "profile" && <ProfileContent />} Render Profile Section */}
+          {activeItem === "userAdmin" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
+          {activeItem === "profile" && <ProfileContent />} 
         </div>
       </div></>
       )}

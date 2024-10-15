@@ -9,13 +9,14 @@ import ErrorPopup from './errorPopup';
 interface HeroSectionProps {
     transactionId: string;
     mobileNumber:string;
-    clientId:string; // Add the prop type for transactionId
+    clientId:string;
+    amount:string // Add the prop type for transactionId
   }
 
-export default function HeroSection({ transactionId, mobileNumber,clientId }: HeroSectionProps) {
+export default function HeroSection({ transactionId, mobileNumber,clientId,amount }: HeroSectionProps) {
     const [activeContent, setActiveContent] = useState("qr/upi pay");
     const [timeRemaining, setTimeRemaining] = useState(180);
-    const [amount, setAmount] = useState("");
+   // const [amount, setAmount] = useState("");
     const [countdown, setCountdown] = useState(45);
     const [utr, setUtr] = useState("");
     const [error, setError] = useState<string | null>(null); 
@@ -227,13 +228,13 @@ export default function HeroSection({ transactionId, mobileNumber,clientId }: He
         alert(`${text} copied to clipboard!`);
     };
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        // Ensure the value is a positive number or empty
-        if (/^\d*\.?\d*$/.test(value)) {
-            setAmount(value);
-        }
-    };
+    // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const value = e.target.value;
+    //     // Ensure the value is a positive number or empty
+    //     if (/^\d*\.?\d*$/.test(value)) {
+    //         setAmount(value);
+    //     }
+    // };
 
     const handleUtrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -568,7 +569,7 @@ export default function HeroSection({ transactionId, mobileNumber,clientId }: He
                     <input
                         type="number"
                         value={amount}
-                        onChange={handleAmountChange}
+                        readOnly
                         placeholder="Amount (Rs)"
                         min="0"
                         className="text-greenText text-base md:text-xl lg:text-xl font-bold w-full md:w-3/4 lg:w-1/2 bg-white border border-black rounded-xl px-4 py-2 placeholder-greenText"

@@ -6,56 +6,65 @@ import AddUserForm from "./addUserForm";
 import { FaPen } from "react-icons/fa"; // Import pencil icon
 import { IUser } from "@/model/userDetails"; // Import the IUser interface
 
-
 interface AllUsersContentProps {
   clientId: string; // Expect clientId as a prop
 }
 
-export const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
+const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [isEditFormVisible, setIsEditFormVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IUser | null>(null); // To hold the user data when editing
+  const [isAddFormVisible, setIsAddFormVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
+  const roleOptions =
+    clientId === "superAdmin"
+      ? ["Super Admin", "Client"]
+      : ["Admin", "Banking Manager"];
+
+  // Fetch Users based on clientId
   useEffect(() => {
     const fetchUsers = async () => {
+      const apiUrl = clientId === "superAdmin" ? "/api/user" : "/api/ClientAdmin";
       try {
-        const response = await axios.get(`/api/user`, {
-          params: {
-            clientId: clientId, // Pass clientId as a query parameter
-          },
-        }); // Correct the API endpoint here
-        setUsers(response.data);
+        const response = await axios.get(apiUrl, {
+          params: { clientId },
+        });
+        const data = response.data;
+
+        // Ensure data is an array before setting state
+        setUsers(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching users:", error);
+        setUsers([]); // Ensure users remains an empty array on error
       }
     };
-  
-    fetchUsers();
-  }, []);
-  
 
-  // Filter and search functionality
+    fetchUsers();
+  }, [clientId]);
+
+  // Filter and Search Functionality
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter = filterType === "All" || user.type === filterType;
     return matchesSearch && matchesFilter;
   });
 
-  // Handle Edit Button click (open form with user data)
+  // Handle Edit Button Click
   const handleEditClick = (user: IUser) => {
-    setSelectedUser(user); // Set the selected user
-    setIsEditFormVisible(true); // Show the edit form
+    setSelectedUser(user); // Set selected user data for editing
+    setIsEditFormVisible(true); // Open the edit form
   };
 
   return (
-    <div className="p-6">
-      {/* Search Bar and Filter */}
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-6 relative">
+      {/* Search Bar and Filter Section */}
+      <div className="flex justify-between items-center mb-4 relative">
         {/* Search Input */}
         <input
           type="text"
@@ -65,18 +74,26 @@ export const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) =>
           className="p-2 border rounded flex-grow mr-4"
         />
 
-        {/* Filter by User Type */}
+        {/* Filter Dropdown */}
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded mr-4"
         >
-          <option value="All">All</option>
-          <option value="Super Admin">Super Admin</option>
-          <option value="Client">Client</option>
-          <option value="Admin">Admin</option>
-          <option value="Banking Manager">Banking Manager</option>
+          {roleOptions.map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
         </select>
+
+        {/* Add New User Button */}
+        <button
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+          onClick={() => setIsAddFormVisible(true)}
+        >
+          Add New User
+        </button>
       </div>
 
       {/* Users Table */}
@@ -93,24 +110,32 @@ export const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) =>
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.map((user, index) => (
-            <tr key={user.id} className="text-center">
-              <td className="border px-4 py-2">{index + 1}</td>
-              <td className="border px-4 py-2">{user.name}</td>
-              <td className="border px-4 py-2">{user.companyName}</td>
-              <td className="border px-4 py-2">{user.email}</td>
-              <td className="border px-4 py-2">{user.phoneNumber}</td>
-              <td className="border px-4 py-2">{user.type}</td>
-              <td className="border px-4 py-2">
-                <button
-                  className="text-blue-600 hover:text-blue-800"
-                  onClick={() => handleEditClick(user)}
-                >
-                  <FaPen /> {/* Pencil icon */}
-                </button>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user, index) => (
+              <tr key={user.id} className="text-center">
+                <td className="border px-4 py-2">{index + 1}</td>
+                <td className="border px-4 py-2">{user.name}</td>
+                <td className="border px-4 py-2">{user.companyName}</td>
+                <td className="border px-4 py-2">{user.email}</td>
+                <td className="border px-4 py-2">{user.phoneNumber}</td>
+                <td className="border px-4 py-2">{user.type}</td>
+                <td className="border px-4 py-2">
+                  <button
+                    className="text-blue-600 hover:text-blue-800"
+                    onClick={() => handleEditClick(user)}
+                  >
+                    <FaPen />
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-4">
+                No users found.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
 
@@ -118,12 +143,17 @@ export const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) =>
       {isEditFormVisible && selectedUser && (
         <AddUserForm
           onClose={() => setIsEditFormVisible(false)}
-          existingUser={selectedUser} // Pass the selected user as a prop to pre-fill the form
-          clientId={""}        />
+          existingUser={selectedUser}
+          clientId={clientId}
+        />
+      )}
+
+      {/* Add User Form */}
+      {isAddFormVisible && (
+        <AddUserForm onClose={() => setIsAddFormVisible(false)} clientId={clientId} />
       )}
     </div>
   );
 };
-
 
 export default AllUsersContent;
