@@ -154,7 +154,7 @@ export const Sidebar = () => {
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
           {activeItem === "userAdmin" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
-          {activeItem === "profile" && <ProfileContent />} 
+          {activeItem === "profile" && <ProfileContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} userId={Array.isArray(userId) ? userId[0] : userId}/>} 
         </div>
       </div></>
       )}

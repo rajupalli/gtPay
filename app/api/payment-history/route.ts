@@ -56,35 +56,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// export async function POST(request: NextRequest) {
-//     try {
-//       await connectToDatabase();
-//       const paymentHistoryData = await request.json();
-  
-//       // Convert dateTime back to a Date object if it was sent as a string
-//       if (typeof paymentHistoryData.dateTime === 'string') {
-//         paymentHistoryData.dateTime = new Date(paymentHistoryData.dateTime);
-//       }
-  
-//       // Validate the request data using the Zod schema
-//       const validatedData = paymentHistorySchema.parse(paymentHistoryData);
-  
-//       // Create new payment history
-//       const newPaymentHistory = await PaymentHistoryModel.create(validatedData);
-//       console.log(newPaymentHistory);  
-//       return NextResponse.json({ message: 'Payment history added', data: newPaymentHistory }, { status: 201 });
-//     } catch (error: any) {
-//         console.log(error);
-//       if (error instanceof z.ZodError) {
-//         return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
-//       }
-//       return NextResponse.json({ message: 'Error adding payment history', error: error.message }, { status: 500 });
-//     }
-//   }
-  
-
-
-
+ 
 
   
 export async function POST(request: NextRequest) {

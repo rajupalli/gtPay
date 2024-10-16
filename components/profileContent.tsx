@@ -1,21 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AiOutlineCopy } from "react-icons/ai";
 import { BsCheckCircle, BsExclamationCircle } from "react-icons/bs";
 
-const ProfileContent: React.FC = () => {
+interface UserData {
+  UserName: string;
+  AppPassword: string;
+  ClientId: string;
+  CompanyName: string;
+  MobileNumber: string;
+  Role: string;
+}
+
+interface ApiResponse {
+  statusCode: number;
+  transactionStatus: boolean;
+  amount?: number;
+  utr?: string;
+  date?: string;
+  time?: string;
+  message?: string;
+}
+
+const ProfileContent: React.FC<{ clientId: string; userId: string }> = ({ clientId, userId }) => {
   const [activeTab, setActiveTab] = useState<"success" | "error">("success");
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const userData = {
-    UserName: "JohnDoe",
-    AppPassword: "app@123",
-    ClientId: "123456789",
-    CompanyName: "ABC Corp",
-    MobileNumber: "+1234567890",
-    Role: "Admin",
-    ApiUrl: "https://api.example.com/v1/endpoint",
-  };
-
-  const apiSuccessResponse = {
+  const apiSuccessResponse: ApiResponse = {
     statusCode: 200,
     transactionStatus: true,
     amount: 500.0,
@@ -24,25 +36,63 @@ const ProfileContent: React.FC = () => {
     time: "14:35:20",
   };
 
-  const apiErrorResponse = {
+  const apiErrorResponse: ApiResponse = {
     statusCode: 400,
     transactionStatus: false,
     message: "Transaction is pending",
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/findUser?clientId=${clientId}&userId=${userId}`);
+        const data = await response.json();
+        if (response.ok) {
+          setUserData({
+            UserName: data.data.userName,
+            AppPassword: data.data.appPassword?? "app@123", // Placeholder password, this should come from API if required
+            ClientId: data.data.clientId,
+            CompanyName:data.data.companyName?? "ABC Corp", // Placeholder, replace with actual data if available
+            MobileNumber: data.data.mobileNumber,
+            Role: data.data.role,
+          });
+        } else {
+          setError(data.message || "Failed to fetch user data");
+        }
+      } catch (err) {
+        setError("Error fetching user data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [clientId, userId]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     alert("Copied to clipboard!");
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (!userData) {
+    return <div>No user data available</div>;
+  }
+
   return (
     <div className="w-full bg-white shadow rounded overflow-hidden">
       {/* Header */}
-      
 
       {/* Profile Overview */}
       <div className="p-6 space-y-4">
-      <h2 className="text-3xl font-bold">Profile Overview</h2>
+        <h2 className="text-3xl font-bold">Profile Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Object.entries(userData)
             .filter(([key]) => key !== "apiUrl")
@@ -74,14 +124,14 @@ const ProfileContent: React.FC = () => {
           <div className="relative">
             <input
               type="text"
-              value={userData.ApiUrl}
+              value={`https://api.example.com/v1/${clientId}`}
               readOnly
               className="w-full border rounded px-4 py-2 text-gray-700 bg-gray-50 focus:ring focus:ring-blue-400"
-              onClick={() => handleCopy(userData.ApiUrl)}
+              onClick={() => handleCopy(`https://api.example.com/v1/${clientId}`)}
             />
             <AiOutlineCopy
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer hover:text-gray-700"
-              onClick={() => handleCopy(userData.ApiUrl)}
+              onClick={() => handleCopy(`https://api.example.com/v1/${clientId}`)}
             />
           </div>
         </div>
