@@ -67,19 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
 
-      {/* Conditionally render the logout button */}
-      {!showTransactionId && (
-        <div className="hidden sm:flex justify-end p-0 m-0">
-          <NavbarItem className="hidden md:flex gap-3">
-            <button
-              onClick={handleLogout}
-              className="text-black font-bold px-4 py-2 border rounded-md hover:bg-gray-200"
-            >
-              Logout
-            </button>
-          </NavbarItem>
-        </div>
-      )}
+       
 
       {/* Mobile menu toggle */}
       <div className="sm:hidden p-0 m-0">

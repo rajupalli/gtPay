@@ -6,12 +6,11 @@ import { PaymentMethodsContent } from "./PaymentMethodContent";
 import AddUserForm from './addUserForm';
 import AllUsersContent  from './AllUsersContent';
 import { PaymentHistoryContent } from "./PaymentHistoryContent";
-import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog, FaUsers, FaUserPlus,FaUser ,} from "react-icons/fa";
+import { FaTachometerAlt, FaCreditCard, FaHistory, FaQuestionCircle, FaUserCog, FaUsers, FaSignOutAlt,FaUser ,} from "react-icons/fa";
 import { HelpAndSupport } from "./HelpAndSupport";
 import { Navbar } from "./navbar";
 import { useParams } from 'next/navigation';
 import ProfileContent from "./profileContent";
-import ClientAdminContent from "./clientAdminContent";
 
 
 export const Sidebar = () => {
@@ -20,6 +19,13 @@ export const Sidebar = () => {
   const [isAddUserFormVisible, setIsAddUserFormVisible] = useState(false); // State to show AddUserForm
   const { clientId } = useParams(); 
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+
+
+  const handleLogout = () => {
+    // Perform logout functionality here, such as clearing user session or redirecting to login
+    console.log("User logged out");
+    window.location.href = "/"; // Redirect to login page after logout
+  };
 
 
   useEffect(() => {
@@ -130,6 +136,14 @@ export const Sidebar = () => {
                   <FaUser className={`text-xl ${activeItem === "profile" ? "text-primary" : "text-black"}`} />
                   <span className="text-center">Profile</span>
                 </li>
+
+                <li
+                  className="cursor-pointer p-2 flex items-center space-x-4 rounded hover:bg-gray-100"
+                  onClick={handleLogout}
+                >
+                  <FaSignOutAlt className="text-xl text-black" />
+                  <span className="text-center">Logout</span>
+                </li>
           </ul>
         </div>
 
@@ -139,14 +153,7 @@ export const Sidebar = () => {
           {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
-          {activeItem === "userAdmin" && (
-  clientId === "superAdmin" ? (
-    <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />
-  ) : (
-    <ClientAdminContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />
-  )
-)}
-
+          {activeItem === "userAdmin" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
           {activeItem === "profile" && <ProfileContent />} 
         </div>
       </div></>
