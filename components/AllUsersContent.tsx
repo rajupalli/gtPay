@@ -26,7 +26,7 @@ const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
   // Fetch Users based on clientId
   useEffect(() => {
     const fetchUsers = async () => {
-      const apiUrl = clientId === "superAdmin" ? "/api/user" : "/api/ClientAdmin";
+      const apiUrl ="/api/user" ;
       try {
         const response = await axios.get(apiUrl, {
           params: { clientId },

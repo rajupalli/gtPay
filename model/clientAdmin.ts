@@ -23,7 +23,7 @@ const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>({
   password: { type: String, required: true },
   confirmPassword: { type: String, required: false },
   clientId: { type: String, required: true },
-  mobile: { type: String },
+  mobile: { type: String,},
 });
 
 // Register the model

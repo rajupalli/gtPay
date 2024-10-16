@@ -11,6 +11,7 @@ import { HelpAndSupport } from "./HelpAndSupport";
 import { Navbar } from "./navbar";
 import { useParams } from 'next/navigation';
 import ProfileContent from "./profileContent";
+import ClientAdminContent from "./clientAdminContent";
 
 
 export const Sidebar = () => {
@@ -138,7 +139,14 @@ export const Sidebar = () => {
           {activeItem === "paymentMethods" && <PaymentMethodsContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />}
           {activeItem === "paymentHistory" && <PaymentHistoryContent clientId={Array.isArray(clientId) ? clientId[0] : clientId}/>}
           {activeItem === "helpSupport" && <HelpAndSupport />}
-          {activeItem === "userAdmin" && <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />} {/* Call the AllUsersContent component */}
+          {activeItem === "userAdmin" && (
+  clientId === "superAdmin" ? (
+    <AllUsersContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />
+  ) : (
+    <ClientAdminContent clientId={Array.isArray(clientId) ? clientId[0] : clientId} />
+  )
+)}
+
           {activeItem === "profile" && <ProfileContent />} 
         </div>
       </div></>
