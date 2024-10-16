@@ -36,24 +36,7 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
   appPassword: { type: String, default: '' }, // New appPassword field with default value
 }, { timestamps: true });
 
-// Hash the password before saving the user document
-UserSchema.pre('save', async function (next) {
-  const user = this as IUser;
-
-  if (!user.isModified('password')) {
-    return next();
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(user.password, salt);
-  next();
-});
-
-// Add a method to compare password
-UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
+ 
 // Virtual field for 'id'
 UserSchema.virtual('id').get(function (this: { _id: mongoose.Types.ObjectId }) {
   return this._id.toHexString();

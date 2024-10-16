@@ -17,7 +17,7 @@ export const Sidebar = () => {
   const [activeItem, setActiveItem] = useState("home");
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false); // New state for tracking the expansion of "User Administration"
   const [isAddUserFormVisible, setIsAddUserFormVisible] = useState(false); // State to show AddUserForm
-  const { clientId } = useParams(); 
+  const { clientId, userId } = useParams(); 
   const [showErrorPopup, setShowErrorPopup] = useState(false);
 
 

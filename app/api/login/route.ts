@@ -36,33 +36,35 @@ export async function POST(request: Request) {
 
     // Verify the password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    
     if (!isPasswordValid) {
       return NextResponse.json({ error: 'Password does not match' }, { status: 401 });
     }
 
     // Create JWT token (without expiry)
-    const token = jwt.sign(
-      {
-        userName: user.userName,
-        email: user.email,
-        role: user.type || 'Client',
-        clientId: user.clientId || null,
-      },
-      SECRET_KEY
-    );
+    // const token = jwt.sign(
+    //   {
+    //     userName: user.userName,
+    //     email: user.email,
+    //     role: user.type || 'Client',
+    //     clientId: user.clientId || null,
+    //   },
+    //   SECRET_KEY
+    // );
 
     // Set HttpOnly cookie with the JWT token
     const response = NextResponse.json(
-      { message: 'Login successful', user: { userName: user.userName, role: user.type || 'Client' } },
+      { message: 'Login successful', user: user },
       { status: 200 }
     );
 
-    response.headers.append(
-      'Set-Cookie',
-      `authToken=${token}; HttpOnly; Path=/; SameSite=Strict; ${
-        process.env.NODE_ENV === 'production' ? 'Secure;' : ''
-      }`
-    );
+    // response.headers.append(
+    //   'Set-Cookie',
+    //   `authToken=${token}; HttpOnly; Path=/; SameSite=Strict; ${
+    //     process.env.NODE_ENV === 'production' ? 'Secure;' : ''
+    //   }`
+    // );
 
     return response;
   } catch (error: any) {

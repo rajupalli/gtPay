@@ -35,15 +35,15 @@ export default function SignIn() {
           }),
         });
         if (response.ok) {
+
           const data = await response.json(); // Parse the JSON response
       
           const { user } = data; // Assuming the user object is returned on successful login
-      
+          console.log(user);
+          console.log(user["type"]);
           // Check the user type and route accordingly
-          if (user.role === 'Client' || user.role === 'Admin' || user.role === 'Banking Manager') {
-            router.push(`/dashboard/${user.clientId}`);  // Redirect to the client-specific dashboard
-          } else {
-            router.push(`/dashboard/superAdmin`);  // Redirect to the superAdmin dashboard
+          if (user.type === 'Client' || user.type === 'Admin' || user.type === 'Banking Manager') {
+            router.push(`/dashboard/${user.clientId}/${user.id}`);  // Redirect to the client-specific dashboard
           }
         } else {
           // If login fails, handle the error
