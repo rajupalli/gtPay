@@ -2,14 +2,14 @@ import mongoose, { Document, Schema, model, models } from 'mongoose';
 import { IPaymentHistory } from './paymentHistory'; // Adjust path if needed
 import { UpiSchema, upiSchemaType } from './UpiDetails'; // Adjust path if needed
 import { BankSchema, bankSchemaType } from './BankDetails'; // Adjust path if needed
-import { ClientAdminSchema, ClientAdminType } from './clientAdmin'; // Properly import ClientAdmin
+import {  ClientAdminType } from './clientAdmin'; // Properly import ClientAdmin
 
 // Interface for Client
 export interface IClient extends Document {
   clientId: string;
   Messages: string[];
   PaymentHistory: IPaymentHistory[];
-  ClientAdmins: ClientAdminType[];
+  ClientAdmin: ClientAdminType[];
   BankModels: bankSchemaType[];
   UPIModels: upiSchemaType[];
 }
@@ -21,7 +21,7 @@ const ClientSchema: Schema<IClient> = new Schema<IClient>(
     Messages: { type: [String], default: [] },
     PaymentHistory: { type: [Object], default: [] },
     
-    ClientAdmins: { type: [ClientAdminSchema], default: [] },
+    ClientAdmin: { type: [Object], default: [] },
     BankModels: { type: [BankSchema], default: [] },
     UPIModels: { type: [UpiSchema], default: [] },
   },

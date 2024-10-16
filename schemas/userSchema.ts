@@ -1,23 +1,49 @@
-import { z } from 'zod';
+import mongoose, { Document, Schema, model, models } from 'mongoose';
 
-// Define the Zod schema for User type
-const userSchema = z.object({
-  name: z.string().nonempty("Name is required"),
-  companyName: z.string().nonempty("Company name is required"),
-  userName: z.string().nonempty("Username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-  email: z.string().email("Invalid email address"),
-  phoneNumber: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits"),
-  alternateNumber: z.string().optional(),  // Optional field
-  type: z.enum(['Super Admin', 'Client', 'Admin', 'Banking Manager'], {
-    errorMap: () => ({ message: "Invalid user type" }),
-  }),
-  clientId: z.string().optional().nullable(), // Optional in Zod validation
-  appPassword: z.string().default(''), // New appPassword field with default value
+// Interface for Client Admin
+export interface ClientAdminType extends Document {
+  type: 'Admin' | 'Banking Manager';
+  name: string;
+  userName: string;
+  password: string;
+  confirmPassword?: string;
+  clientId: mongoose.Types.ObjectId;
+  mobile?: string;
+}
+
+// Client Admin Schema
+const ClientAdminSchema = new Schema<ClientAdminType>({
+  type: {
+    type: String,
+    enum: ['Admin', 'Banking Manager'],
+    required: true,
+  },
+  name: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  confirmPassword: { type: String },
+  clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+  mobile: { type: String },
 });
 
-// Infer TypeScript type from schema
-export type UserType = z.infer<typeof userSchema>;
+const ClientAdminModel = 
+  models.ClientAdminModel || model<ClientAdminType>('ClientAdminModel', ClientAdminSchema);
 
-// Export the Zod schema
-export { userSchema };
+// Interface for Client
+export interface ClientType extends Document {
+  name: string;
+  companyName: string;
+  clientAdmins: mongoose.Types.ObjectId[];
+}
+
+// Client Schema
+const ClientSchema = new Schema<ClientType>({
+  name: { type: String, required: true },
+  companyName: { type: String, required: true },
+  clientAdmins: [{ type: Schema.Types.ObjectId, ref: 'ClientAdminModel' }],
+});
+
+const ClientModel = 
+  models.Client || model<ClientType>('Client', ClientSchema);
+
+export { ClientModel, ClientAdminModel };

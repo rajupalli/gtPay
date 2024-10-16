@@ -21,30 +21,47 @@ export async function POST(req: NextRequest) {
     await ensureDatabaseConnection();
 
     const parsedBody = await req.json();
-    console.log(parsedBody);
-    const result = clientAdminSchema.safeParse(parsedBody);
+    const { clientId, ...adminData } = parsedBody;
 
-    if (!result.success) {
-      console.error('Validation Error:', result.error);
-      return NextResponse.json(
-        { message: 'Validation error', errors: result.error.errors },
-        { status: 400 }
-      );
+    if (!clientId) {
+      return NextResponse.json({ message: 'Client ID is required' }, { status: 400 });
     }
 
-    const { clientId, ...adminData } = parsedBody as ClientAdminSchemaType;
     const client = await ClientModel.findOne({ clientId });
 
     if (!client) {
       return NextResponse.json({ message: 'Client not found' }, { status: 404 });
     }
 
-    const newAdmin = new ClientAdminModel({ clientId, ...adminData });
-    await newAdmin.save();
+    // Validate admin data using the clientAdminSchema
+    const validationResult = clientAdminSchema.safeParse(parsedBody);
+    if (!validationResult.success) {
+      console.error('Validation Error:', validationResult.error);
+      return NextResponse.json(
+        { message: 'Validation error', errors: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
 
-    // Embed the new admin directly if using embedded schema
-    client.ClientAdmins.push(newAdmin);
-    await client.save();
+    const newAdminData = validationResult.data;
+    const newAdmin = {
+      ...newAdminData,
+      createdAt: new Date(),
+    };
+
+    // Push new admin data to the client’s ClientAdmins array
+    const updatedClient = await ClientModel.findOneAndUpdate(
+      { clientId },
+      { $push: { ClientAdmin: newAdmin } },
+      { new: true }
+    );
+
+    if (!updatedClient) {
+      return NextResponse.json(
+        { message: 'Client not found or admin not associated' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(
       { message: 'ClientAdmin created and associated with client', data: newAdmin },
@@ -58,6 +75,7 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 
 // GET /api/clientAdmin?clientId=<clientId>
 export async function GET(req: NextRequest) {
@@ -73,16 +91,25 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    console.log(clientId);
-    const client = await ClientModel.findOne({ clientId });
+
+    // Fetch the client with the associated clientId
+    const client = await ClientModel.findOne({ clientId }).select('ClientAdmin');
 
     if (!client) {
       return NextResponse.json({ message: 'Client not found' }, { status: 404 });
     }
-    console.log(client.ClientAdmins);
+
+    // Check if there are any ClientAdmins
+    const clientAdmins = client.ClientAdmin || [];
+    if (clientAdmins.length === 0) {
+      return NextResponse.json(
+        { message: 'No ClientAdmins found for the specified client', data: [] },
+        { status: 200 }
+      );
+    }
+   console.log(clientAdmins);
     return NextResponse.json(
-      { data: client.ClientAdmins, message: 'ClientAdmins fetched successfully' },
+      { data: clientAdmins, message: 'ClientAdmins fetched successfully' },
       { status: 200 }
     );
   } catch (error: any) {
@@ -93,6 +120,7 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
 
 // PUT /api/clientAdmin
 export async function PUT(req: NextRequest) {
