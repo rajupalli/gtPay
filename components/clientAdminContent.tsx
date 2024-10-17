@@ -10,6 +10,8 @@ interface ClientAdmin {
   name: string;
   userName: string;
   password: string;
+  id:string;
+  email:string;
   clientId: string;
   phoneNumber?: string;
   createdAt?: string;
@@ -54,7 +56,7 @@ const ClientAdminContent: React.FC<ClientAdminContentProps> = ({ clientId }) => 
     };
   
     fetchClientAdmins();
-  }, [clientId]);
+  }, [clientId]); 
   
   // Filter ClientAdmin data
   const filteredAdmins = clientAdmins.filter((admin) => {
@@ -152,7 +154,7 @@ const ClientAdminContent: React.FC<ClientAdminContentProps> = ({ clientId }) => 
       {isEditFormVisible && selectedAdmin && (
         <AddUserForm
           onClose={() => setIsEditFormVisible(false)}
-         // existingUser={selectedAdmin}
+          existingUser={selectedAdmin}
           clientId={clientId}
         />
       )}

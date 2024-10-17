@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { IUser } from "@/model/userDetails"; // Adjust the path if needed
 import { AiOutlineClose } from "react-icons/ai"; // Optional icon for better UI
+ 
+
+
+
+
+interface ClientAdmin {
+  type: 'Admin' | 'Banking Manager';
+  name: string;
+  id:string;
+  userName: string;
+  password: string;
+  clientId: string;
+  email:string;
+  phoneNumber?: string;
+  createdAt?: string;
+}
+
 
 interface AddUserFormProps {
   onClose: () => void;
-  existingUser?: IUser | null;
+  existingUser?: IUser | ClientAdmin | null;
   clientId: string;
 }
 
@@ -18,6 +35,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
       ? ["Super Admin", "Client"]
       : ["Admin", "Banking Manager"];
 
+  // Pre-fill form if editing an existing user
   const [formData, setFormData] = useState({
     role: roleOptions[0],
     name: "",
@@ -34,21 +52,23 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Populate form data if editing an existing user
   useEffect(() => {
     if (existingUser) {
       setFormData({
         role: existingUser.type,
-        name: existingUser.name,
-        companyName: existingUser.companyName,
-        userName: existingUser.userName,
-        password: "",
-        email: existingUser.email,
-        phoneNumber: existingUser.phoneNumber,
-        alternateNumber: existingUser.alternateNumber || "",
+        name: existingUser.name || "", // Safe access with fallback to empty string
+        companyName: "companyName" in existingUser ? existingUser.companyName || "" : "", // Check if companyName exists
+        userName: existingUser.userName || "",
+        password: "", // Keep password empty for security reasons
+        email: existingUser.email , // Check if email exists
+        phoneNumber: existingUser.phoneNumber || "",
+        alternateNumber: "alternateNumber" in existingUser ? existingUser.alternateNumber || "" : "", // Check if alternateNumber exists
         appPassword: "",
       });
     }
   }, [existingUser]);
+  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,25 +82,31 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent form default behavior
+    e.preventDefault();
     setPasswordError(""); // Clear previous password error
-  
-    // Check if passwords match
-    if (formData.password !== confirmPassword) {
+
+    // Check if passwords match (only if the password is being edited)
+    if (formData.password && formData.password !== confirmPassword) {
       setPasswordError("Passwords do not match.");
       return;
     }
-  
+
     setIsSubmitting(true); // Indicate form is submitting
-  
+
     try {
-      // Determine the correct API route based on clientId
-      const apiUrl = clientId === "superAdmin" ? "/api/user" : "/api/ClientAdmin";
+      // Choose API route based on whether we are adding or editing
+      const apiUrl = clientId === "superAdmin" 
+        ? `/api/user${existingUser ? `/${existingUser.id}` : ""}` 
+        : `/api/ClientAdmin${existingUser ? `/${existingUser.id}` : ""}`;
+      
+      const method = existingUser ? "PUT" : "POST"; // Use PUT for editing, POST for adding
+
       console.log(formData);
       console.log(apiUrl);
+
       // Make the API request
       const response = await fetch(apiUrl, {
-        method: "POST",
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -90,26 +116,25 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
           clientId,
         }),
       });
-  
+
       // Handle non-OK responses
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Error: ${response.statusText}`);
       }
-  
+
       // Handle successful response
       const result = await response.json();
-      console.log("User added successfully:", result);
-      alert("User added successfully!");
+      console.log("User operation successful:", result);
+      alert(`User ${existingUser ? "updated" : "added"} successfully!`);
     } catch (error: any) {
-      console.error("Failed to add user:", error);
-      alert("Failed to add user: " + error.message);
+      console.error("Failed to process user:", error);
+      alert(`Failed to ${existingUser ? "update" : "add"} user: ` + error.message);
     } finally {
       setIsSubmitting(false); // Stop submission indicator
       onClose(); // Close the form modal
     }
   };
-  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -143,52 +168,52 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
             </select>
           </div>
 
-          {/* Input Fields - Two fields per row */}
+          {/* Input Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  {["name", "userName", "email", "phoneNumber"].map((field) => (
-    <div key={field}>
-      <label className="block text-sm font-medium text-gray-700 capitalize">
-        {field.replace(/([A-Z])/g, " $1")}
-      </label>
-      <input
-        type={field.includes("Number") ? "tel" : "text"}
-        name={field}
-        value={formData[field as keyof typeof formData]}
-        onChange={handleChange}
-        className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-        placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
-      />
-    </div>
-  ))}
+            {["name", "userName", "email", "phoneNumber"].map((field) => (
+              <div key={field}>
+                <label className="block text-sm font-medium text-gray-700 capitalize">
+                  {field.replace(/([A-Z])/g, " $1")}
+                </label>
+                <input
+                  type={field.includes("Number") ? "tel" : "text"}
+                  name={field}
+                  value={formData[field as keyof typeof formData]}
+                  onChange={handleChange}
+                  className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                  placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
+                />
+              </div>
+            ))}
 
-  {/* Conditionally render companyName and alternateNumber if role is Client */}
-  {formData.role === "Client" && (
-    <>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Company Name</label>
-        <input
-          type="text"
-          name="companyName"
-          value={formData.companyName}
-          onChange={handleChange}
-          className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-          placeholder="Enter company name"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Alternate Phone Number</label>
-        <input
-          type="tel"
-          name="alternateNumber"
-          value={formData.alternateNumber}
-          onChange={handleChange}
-          className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-          placeholder="Enter alternate phone number"
-        />
-      </div>
-    </>
-  )}
-</div>
+            {/* Conditionally render companyName and alternateNumber if role is Client */}
+            {formData.role === "Client" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Company Name</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                    placeholder="Enter company name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Alternate Phone Number</label>
+                  <input
+                    type="tel"
+                    name="alternateNumber"
+                    value={formData.alternateNumber}
+                    onChange={handleChange}
+                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+                    placeholder="Enter alternate phone number"
+                  />
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,7 +225,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-                placeholder="Enter password"
+                placeholder={existingUser ? "Enter new password (if changing)" : "Enter password"}
               />
             </div>
 
@@ -229,12 +254,10 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
             </button>
             <button
               type="submit"
-              className={`py-2 px-4 text-white rounded-lg ${
-                isSubmitting ? "bg-green-300" : "bg-green-500 hover:bg-green-600"
-              }`}
+              className={`py-2 px-4 text-white rounded-lg ${isSubmitting ? "bg-green-300" : "bg-green-500 hover:bg-green-600"}`}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? "Submitting..." : existingUser ? "Update" : "Submit"}
             </button>
           </div>
         </form>

@@ -8,25 +8,30 @@ export interface ClientAdminType extends Document {
   password: string;
   clientId: string;
   phoneNumber?: string; // Use phoneNumber instead of mobile
+  email: string; // Add email field
 }
 
 // Client Admin Schema
-const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>({
-  type: {
-    type: String,
-    enum: ['Admin', 'Banking Manager'],
-    required: true,
+const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>(
+  {
+    type: {
+      type: String,
+      enum: ['Admin', 'Banking Manager'],
+      required: true,
+    },
+    name: { type: String, required: true },
+    userName: { type: String, required: true }, // Keep userName here
+    password: { type: String, required: true },
+    clientId: { type: String, required: true },
+    phoneNumber: { type: String }, // Use phoneNumber field
+    email: { type: String, default: '' }, // Add email field with default value
   },
-  name: { type: String, required: true },
-  userName: { type: String, required: true }, // Keep userName here
-  password: { type: String, required: true },
-  clientId: { type: String, required: true },
-  phoneNumber: { type: String }, // Use phoneNumber field
-}, {
-  // Options for auto-generating the id
-  toObject: { getters: true },
-  toJSON: { getters: true },
-});
+  {
+    // Options for auto-generating the id
+    toObject: { getters: true },
+    toJSON: { getters: true },
+  }
+);
 
 // Register the model with automatic id generation
 const ClientAdminModel =

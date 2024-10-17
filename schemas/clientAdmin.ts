@@ -17,6 +17,7 @@ const clientAdminSchema = z.object({
     }, {
       message: 'Phone number must be a valid 10-digit number',
     }),
+  email: z.string().optional().default(''), // Add email field, defaults to empty string
 });
 
 export type ClientAdminSchemaType = z.infer<typeof clientAdminSchema>;
