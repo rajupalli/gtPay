@@ -43,7 +43,10 @@ export default function SignIn() {
           console.log(user["type"]);
           // Check the user type and route accordingly
           if (user.type === 'Client' || user.type === 'Admin' || user.type === 'Banking Manager') {
-            router.push(`/dashboard/${user.clientId}/${user.id}`);  // Redirect to the client-specific dashboard
+            console.log("user id ");
+            console.log(user);
+            console.log(user._id);
+            router.push(`/dashboard/${user.clientId}/${user._id}`);  // Redirect to the client-specific dashboard
           }
         } else {
           // If login fails, handle the error

@@ -19,13 +19,14 @@ export async function POST(request: Request) {
 
     // Check 'clients' collection if not found in 'users' collection
     if (!user) {
+      console.log("user not found in user now check in client admins");
       const clientsCollection = mongoose.connection.collection('clients');
       const client = await clientsCollection.findOne({
-        Users: { $elemMatch: { userName } }
+        ClientAdmin: { $elemMatch: { userName } }
       });
 
       if (client) {
-        user = client.Users.find((u: any) => u.userName === userName);
+        user = client.ClientAdmin.find((u: any) => u.userName === userName);
       }
     }
 
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
 
     // Verify the password
          if(password== user.password){
+          console.log(user);
           const response = NextResponse.json(
             { message: 'Login successful', user: user },
             { status: 200 }

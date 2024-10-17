@@ -6,34 +6,34 @@ export interface ClientAdminType extends Document {
   name: string;
   userName: string; // userName field here
   password: string;
+  confirmPassword?: string;
   clientId: string;
-  phoneNumber?: string; // Use phoneNumber instead of mobile
-  email: string; // Add email field
+  mobile?: string;
 }
 
 // Client Admin Schema
-const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>(
-  {
-    type: {
-      type: String,
-      enum: ['Admin', 'Banking Manager'],
-      required: true,
-    },
-    name: { type: String, required: true },
-    userName: { type: String, required: true }, // Keep userName here
-    password: { type: String, required: true },
-    clientId: { type: String, required: true },
-    phoneNumber: { type: String }, // Use phoneNumber field
-    email: { type: String, default: '' }, // Add email field with default value
+const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>({
+  type: {
+    type: String,
+    enum: ['Admin', 'Banking Manager'],
+    required: true,
   },
-  {
-    // Options for auto-generating the id
-    toObject: { getters: true },
-    toJSON: { getters: true },
-  }
-);
+  name: { type: String, required: true },
+  userName: { type: String, required: true }, // Keep userName here
+  password: { type: String, required: true },
+  confirmPassword: { type: String, required: false },
+  clientId: { type: String, required: true },
+  mobile: { type: String,},
+});
 
-// Register the model with automatic id generation
+
+
+// Virtual field for 'id'
+ClientAdminSchema.virtual('id').get(function (this: { _id: mongoose.Types.ObjectId }) {
+  return this._id.toHexString();
+});
+
+// Register the model
 const ClientAdminModel =
   models.ClientAdminModel || model<ClientAdminType>('ClientAdminModel', ClientAdminSchema);
 
