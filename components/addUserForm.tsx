@@ -145,24 +145,50 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
 
           {/* Input Fields - Two fields per row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {["name", "companyName", "userName", "email", "phoneNumber", "alternateNumber"].map(
-              (field) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium text-gray-700 capitalize">
-                    {field.replace(/([A-Z])/g, " $1")}
-                  </label>
-                  <input
-                    type={field.includes("Number") ? "tel" : "text"}
-                    name={field}
-                    value={formData[field as keyof typeof formData]}
-                    onChange={handleChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
-                    placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
-                  />
-                </div>
-              )
-            )}
-          </div>
+  {["name", "userName", "email", "phoneNumber"].map((field) => (
+    <div key={field}>
+      <label className="block text-sm font-medium text-gray-700 capitalize">
+        {field.replace(/([A-Z])/g, " $1")}
+      </label>
+      <input
+        type={field.includes("Number") ? "tel" : "text"}
+        name={field}
+        value={formData[field as keyof typeof formData]}
+        onChange={handleChange}
+        className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+        placeholder={`Enter ${field.replace(/([A-Z])/g, " $1")}`}
+      />
+    </div>
+  ))}
+
+  {/* Conditionally render companyName and alternateNumber if role is Client */}
+  {formData.role === "Client" && (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Company Name</label>
+        <input
+          type="text"
+          name="companyName"
+          value={formData.companyName}
+          onChange={handleChange}
+          className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+          placeholder="Enter company name"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Alternate Phone Number</label>
+        <input
+          type="tel"
+          name="alternateNumber"
+          value={formData.alternateNumber}
+          onChange={handleChange}
+          className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-green-300"
+          placeholder="Enter alternate phone number"
+        />
+      </div>
+    </>
+  )}
+</div>
 
           {/* Password */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
