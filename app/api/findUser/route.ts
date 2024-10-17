@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     // Extract clientId and userId from query parameters
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
+    let clientId = searchParams.get('clientId');
     const userId = searchParams.get('userId');
 
     if (!clientId || !userId) {
@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if(clientId==="superAdmin"){
+        clientId=userId;
+    }
     // First, search in the 'users' collection
     const user = await UserModel.findOne({ clientId });
     console.log(user);

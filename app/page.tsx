@@ -20,7 +20,7 @@ export default function SignIn() {
     if (username && password) {
 
       if(username ==='Super123' && password==='Test@123'){
-        router.push(`/dashboard/superAdmin`); 
+        router.push(`/dashboard/superAdmin/6710b2ed580d77b22d2ed1f3`); 
       }else{
       try {
         // Make a POST request to the login API
