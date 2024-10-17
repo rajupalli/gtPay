@@ -2,18 +2,16 @@ import mongoose, { Document, Schema, model, models } from 'mongoose';
 
 // Interface for Client Admin
 export interface ClientAdminType extends Document {
-  id: string; // Custom id field
   type: 'Admin' | 'Banking Manager';
   name: string;
   userName: string; // userName field here
   password: string;
   clientId: string;
-  mobile?: string;
+  phoneNumber?: string; // Use phoneNumber instead of mobile
 }
 
 // Client Admin Schema
 const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>({
-  id: { type: String, required: true, unique: true }, // Custom id field
   type: {
     type: String,
     enum: ['Admin', 'Banking Manager'],
@@ -23,10 +21,14 @@ const ClientAdminSchema: Schema<ClientAdminType> = new Schema<ClientAdminType>({
   userName: { type: String, required: true }, // Keep userName here
   password: { type: String, required: true },
   clientId: { type: String, required: true },
-  mobile: { type: String },
+  phoneNumber: { type: String }, // Use phoneNumber field
+}, {
+  // Options for auto-generating the id
+  toObject: { getters: true },
+  toJSON: { getters: true },
 });
 
-// Register the model
+// Register the model with automatic id generation
 const ClientAdminModel =
   models.ClientAdminModel || model<ClientAdminType>('ClientAdminModel', ClientAdminSchema);
 

@@ -10,9 +10,8 @@ interface ClientAdmin {
   name: string;
   userName: string;
   password: string;
-  confirmPassword?: string;
   clientId: string;
-  mobile?: string;
+  phoneNumber?: string;
   createdAt?: string;
 }
 
@@ -62,7 +61,7 @@ const ClientAdminContent: React.FC<ClientAdminContentProps> = ({ clientId }) => 
     const matchesSearch =
       admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       admin.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (admin.mobile && admin.mobile.includes(searchTerm));
+      (admin.phoneNumber && admin.phoneNumber.includes(searchTerm));
 
     const matchesFilter = filterType === "All" || admin.type === filterType;
     return matchesSearch && matchesFilter;
@@ -127,7 +126,7 @@ const ClientAdminContent: React.FC<ClientAdminContentProps> = ({ clientId }) => 
                 <td className="border px-4 py-2">{index + 1}</td>
                 <td className="border px-4 py-2">{admin.name}</td>
                 <td className="border px-4 py-2">{admin.userName}</td>
-                <td className="border px-4 py-2">{admin.mobile || "N/A"}</td>
+                <td className="border px-4 py-2">{admin.phoneNumber || "N/A"}</td>
                 <td className="border px-4 py-2">{admin.type}</td>
                 <td className="border px-4 py-2">
                   <button

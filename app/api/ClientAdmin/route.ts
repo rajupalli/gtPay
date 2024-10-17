@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const parsedBody = await req.json();
     const { clientId, ...adminData } = parsedBody;
-
+    console.log(adminData);
     if (!clientId) {
       return NextResponse.json({ message: 'Client ID is required' }, { status: 400 });
     }
