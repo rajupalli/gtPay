@@ -62,9 +62,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(parsedBody.password, salt);
-
+   
     let clientId = parsedBody.clientId || null;
     console.log(clientId);
 
@@ -93,7 +91,7 @@ export async function POST(request: Request) {
       // Now create and save the new user in the users collection
       const newUser = new UserModel({
         ...parsedBody,
-        password: hashedPassword,
+        password: parsedBody.password,
         clientId: clientId, // Include clientId for Client users
         appPassword: appPassword, // Set appPassword (8-digit pin) for Client
       });

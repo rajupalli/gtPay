@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     
     // Parse the incoming request data
     const paymentHistoryData = await request.json();
-    console.log('Incoming data:', paymentHistoryData);
+   
 
     // Extract clientId from the request (assuming it's passed with the payload)
     const { clientId } = paymentHistoryData;

@@ -20,7 +20,7 @@ const ErrorPopup: React.FC<ErrorPopupProps> = ({ error }) => {
         <p className="text-gray-800 mb-4">{error}</p>
         <button
           onClick={handleClose}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none"
+          className="bg-blue-500 text-red px-4 py-2 rounded hover:bg-blue-600 focus:outline-none"
         >
           OK
         </button>

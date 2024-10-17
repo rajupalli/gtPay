@@ -35,12 +35,15 @@ export async function POST(request: Request) {
     }
 
     // Verify the password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    
-    // if (!isPasswordValid) {
-    //   return NextResponse.json({ error: 'Password does not match' }, { status: 401 });
-    // }
+         if(password== user.password){
+          const response = NextResponse.json(
+            { message: 'Login successful', user: user },
+            { status: 200 }
+          );
+          return response;
+         }else{
+       return NextResponse.json({ error: 'Password does not match' }, { status: 401 });
+         }
 
     // Create JWT token (without expiry)
     // const token = jwt.sign(
@@ -54,10 +57,7 @@ export async function POST(request: Request) {
     // );
 
     // Set HttpOnly cookie with the JWT token
-    const response = NextResponse.json(
-      { message: 'Login successful', user: user },
-      { status: 200 }
-    );
+  
 
     // response.headers.append(
     //   'Set-Cookie',
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     //   }`
     // );
 
-    return response;
+   
   } catch (error: any) {
     console.error('Error during login:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import mongoose, { Document, Schema } from 'mongoose';
 
 // Handle all HTTP methods (GET, POST, PUT, DELETE) in this file
+// Handle all HTTP methods (GET, POST, PUT, DELETE) in this file
 export async function GET(request: NextRequest) {
   await connectToDatabase(); // Ensure the database is connected
 
@@ -26,8 +27,12 @@ export async function GET(request: NextRequest) {
       // Find the client document by clientId and search the messages array for the specific message
       const foundClient = await clientCollection.findOne({
         clientId: clientId,  // Ensure the query is client-specific
-        'Messages.referenceId': referenceId, // Search within the messages array by referenceId
-        'Messages.amount': Number(amount) // Match the amount
+        Messages: {
+          $elemMatch: {
+            referenceId: referenceId,  // Search within the messages array by referenceId
+            amount: Number(amount)     // Match the amount (convert string to number)
+          }
+        }
       });
 
       // If a client with the matching message is found
@@ -47,6 +52,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ found: false, message: 'Message not found' }, { status: 404 });
       }
     } catch (error: any) {
+      console.error('Error occurred while searching for message:', error);  // Log the error details for debugging
       return NextResponse.json({ message: 'Error checking message', error: error.message }, { status: 500 });
     }
   } else {

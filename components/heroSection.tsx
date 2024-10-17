@@ -285,9 +285,12 @@ export default function HeroSection({ transactionId, mobileNumber,clientId,amoun
         if (utrCheckResponse.data.exists) {
             setError('UTR number already exits'); // Set the error state
             return; // Stop the execution if UTR exists
+        }else{
+            console.log(utrCheckResponse.data.exists);
         }
     } catch (error) {
-        alert('Error checking UTR number.');
+        setError('Error checking UTR number.'); // Set the error state
+       // alert('Error checking UTR number.');
         return;
     }
 
@@ -326,15 +329,15 @@ export default function HeroSection({ transactionId, mobileNumber,clientId,amoun
             if (messageCheckResponse.data.found) { 
                 console.log(paymentHistoryId);
                 // Step 3: If found, update the payment history status to "Approved"
-                await axios.put(`/api/payment-history/${paymentHistoryId}?clientId=${clientId}`, { 
-                    status1: "Approved"
+                await axios.put(`/api/payment-history/${utr}?clientId=${clientId}`, { 
+                    status: "Approved"
                   });
                   
                   
                   
                 alert('Payment history updated to Approved!');
             } else {
-                setError('No matching message found for the payment history.');
+                alert('No matching message found for the payment history.');
             }
            
         } catch (error: unknown) {
@@ -342,16 +345,16 @@ export default function HeroSection({ transactionId, mobileNumber,clientId,amoun
                 // Axios-specific error handling
                 if (error.response) {
                     console.error('Server error:', error.response.data);
-                    setError(`Error: ${error.response.data.message}`);
+                    alert(`Error: ${error.response.data.message}`);
                 } else if (error.request) {
                     console.error('No response received:', error.request);
-                    setError('No response received from server.');
+                    alert('No response received from server.');
                 } else {
-                    setError(`Axios error:, ${error.message}`);
+                  //  setError(`Axios error:, ${error.message}`);
                     alert('An error occurred while adding payment history.');
                 }
             } else {
-                setError(`Unexpected error: ${error}`);
+                //setError(`Unexpected error: ${error}`);
                 alert('An unexpected error occurred.');
             }
         }finally {
@@ -370,7 +373,7 @@ export default function HeroSection({ transactionId, mobileNumber,clientId,amoun
                     <div>
                         <div className="flex justify-center items-center mt-10">
                         <img
-  src={upiId.qrCode && upiId.qrCode.trim() ? upiId.qrCode : "/qr123.jpg"}
+  src={upiId.qrCode && upiId.qrCode.trim() ? upiId.qrCode : "/errroimage.jpg"}
   alt="QR Code"
   className="w-100 h-100 md:w-40 md:h-40 object-cover"
 />

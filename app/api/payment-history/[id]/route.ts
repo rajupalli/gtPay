@@ -70,37 +70,36 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (!paymentId || !clientId) {
       return NextResponse.json({ message: 'Payment ID and Client ID are required' }, { status: 400 });
     }
-
-    // Validate if paymentId is a valid ObjectId
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(paymentId);
-    if (!isValidObjectId) {
-      return NextResponse.json({ message: 'Invalid Payment ID format' }, { status: 400 });
-    }
+    console.log(clientId);
+    console.log(paymentId);
+    
 
     // Parse and validate the request data
     const updateData = await request.json();
     const validatedData = paymentHistorySchema.partial().parse(updateData);
-
+    console.log(updateData);
     // Extract the status to be updated
     const { status } = validatedData;
-
+console.log(status);
     // Access the "clients" collection
     const clientCollection = mongoose.connection.collection('clients');
-
+  
     // Find and update the specific payment history entry for the given clientId and paymentId
     const updatedClient = await clientCollection.findOneAndUpdate(
       { 
         clientId: clientId, // Filter by clientId
-        'PaymentHistory._id': new mongoose.Types.ObjectId(paymentId) // Find the payment by its ID inside PaymentHistory array
+        'PaymentHistory.utrNo': paymentId // Find the payment by its ID inside PaymentHistory array
       },
       { $set: { 'PaymentHistory.$.status': status } }, // Use the positional operator `$` to update the matched payment entry
       { returnDocument: 'after' } // Return the updated document after the update
     );
 
+     
     // Check if the payment history was found and updated
-    if (!updatedClient?.value) {
+    if (!updatedClient) { // Updated client will be null if not found
       return NextResponse.json({ message: 'Payment history not found' }, { status: 404 });
     }
+    
 
     // Return the updated client document with the updated payment history
     return NextResponse.json({ message: 'Payment history updated', data: updatedClient?.value }, { status: 200 });
@@ -109,7 +108,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: 'Validation error', error: error.errors }, { status: 400 });
     }
-
+    console.log(error.message);
     // Handle other errors
     return NextResponse.json({ message: 'Error updating payment history', error: error.message }, { status: 500 });
   }
