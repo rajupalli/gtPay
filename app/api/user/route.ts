@@ -110,3 +110,73 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
+
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');// Assuming user ID is passed as a query parameter
+
+    await connectToDatabase();
+    const parsedBody = userSchema.parse(body);
+
+    // Find the user by ID
+    const existingUser = await UserModel.findById(id);
+
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check for duplicate email, username, or phoneNumber, excluding the current user
+    const duplicateUser = await UserModel.findOne({
+      $or: [
+        { email: parsedBody.email },
+        { userName: parsedBody.userName },
+        { phoneNumber: parsedBody.phoneNumber }
+      ],
+      _id: { $ne: id }, // Exclude the current user from the search
+    });
+
+    if (duplicateUser) {
+      let errorMessage = 'Another user with this email, username, or phone number already exists';
+
+      if (duplicateUser.email === parsedBody.email) {
+        errorMessage = 'Another user with this email already exists';
+      } else if (duplicateUser.userName === parsedBody.userName) {
+        errorMessage = 'Another user with this username already exists';
+      } else if (duplicateUser.phoneNumber === parsedBody.phoneNumber) {
+        errorMessage = 'Another user with this phone number already exists';
+      }
+
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
+
+    // Hash password if it is being updated
+    let updatedPassword = existingUser.password;
+    if (parsedBody.password && parsedBody.password !== existingUser.password) {
+      updatedPassword = await bcrypt.hash(parsedBody.password, 10);
+    }
+
+    // Update user fields
+    existingUser.name = parsedBody.name;
+    existingUser.companyName = parsedBody.companyName;
+    existingUser.userName = parsedBody.userName;
+    existingUser.password = updatedPassword;
+    existingUser.email = parsedBody.email;
+    existingUser.phoneNumber = parsedBody.phoneNumber;
+    existingUser.alternateNumber = parsedBody.alternateNumber || existingUser.alternateNumber;
+    
+    existingUser.clientId = parsedBody.clientId || existingUser.clientId;
+    existingUser.appPassword = parsedBody.appPassword;
+     
+
+    // Save updated user in the database
+    await existingUser.save();
+
+    return NextResponse.json({ message: 'User updated successfully', user: existingUser }, { status: 200 });
+  } catch (error: any) {
+    console.error("Error updating user:", error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}

@@ -39,6 +39,7 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
   const [formData, setFormData] = useState({
     role: roleOptions[0],
     name: "",
+    id:'',
     companyName: "",
     userName: "",
     password: "",
@@ -57,10 +58,11 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
     if (existingUser) {
       setFormData({
         role: existingUser.type,
+        id:existingUser.id,
         name: existingUser.name || "", // Safe access with fallback to empty string
         companyName: "companyName" in existingUser ? existingUser.companyName || "" : "", // Check if companyName exists
         userName: existingUser.userName || "",
-        password: "", // Keep password empty for security reasons
+        password: existingUser.password, // Keep password empty for security reasons
         email: existingUser.email , // Check if email exists
         phoneNumber: existingUser.phoneNumber || "",
         alternateNumber: "alternateNumber" in existingUser ? existingUser.alternateNumber || "" : "", // Check if alternateNumber exists

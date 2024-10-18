@@ -23,11 +23,26 @@ export async function GET(request: NextRequest) {
 
     if(clientId==="superAdmin"){
         clientId=userId;
+        const user = await UserModel.findOne({ clientId });
+        return NextResponse.json({
+          message: 'User found in users collection',
+          data: {
+            userName: user.userName,
+            clientId: user.clientId,
+            role: user.type,
+            mobileNumber: user.phoneNumber,
+            appPassword:user.appPassword,
+            companyName:user.companyName
+          },
+          status: 200,
+        });
     }
-    
+    console.log(clientId);
+
     const user = await UserModel.findOne({ clientId });
+     
     
-    if(user._id==userId || clientId==="superAdmin"){
+    if(  user._id==userId ){
     if (user) {
       console.log(user.appPassword);
      
