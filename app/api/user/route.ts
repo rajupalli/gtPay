@@ -114,13 +114,14 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+   
     const body = await request.json();
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');// Assuming user ID is passed as a query parameter
 
+    const id = body.id;
+    console.log(id);
     await connectToDatabase();
     const parsedBody = userSchema.parse(body);
-
+    
     // Find the user by ID
     const existingUser = await UserModel.findById(id);
 

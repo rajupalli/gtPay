@@ -10,6 +10,20 @@ interface AllUsersContentProps {
   clientId: string; // Expect clientId as a prop
 }
 
+interface ClientAdmin {
+  type: 'Admin' | 'Banking Manager';
+  name: string;
+  id:string;
+  userName: string;
+  password: string;
+  clientId: string;
+  email:string;
+  phoneNumber?: string;
+  createdAt?: string;
+}
+
+
+
 const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,6 +68,39 @@ const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
     const matchesFilter = filterType === "All" || user.type === filterType;
     return matchesSearch && matchesFilter;
   });
+
+
+  // Inside AllUsersContent component
+
+  const convertToIUser = (user: IUser | ClientAdmin): IUser => {
+    if ("type" in user && user.type === "Admin" || user.type === "Banking Manager") {
+      // Assuming necessary fields from ClientAdmin are here, and adding default values for IUser fields
+      return {
+        ...user,
+        companyName: "Default Company",   // Default or derived value
+        appPassword: "defaultPassword",   // Default or derived value
+        domain: "defaultDomain",          // Default or derived value
+        // You can add other IUser-specific fields here
+      } as IUser;
+    }
+    return user as IUser;  // If it's already IUser, return as is
+  };
+
+  
+  const handleUserSubmit = (newUser: IUser | ClientAdmin) => {
+    const convertedUser = convertToIUser(newUser);  // Ensure it's an IUser
+
+    if (convertedUser.id) {
+      // Update existing user in the list
+      setUsers((prevUsers) =>
+        prevUsers.map((user) => (user.id === convertedUser.id ? convertedUser : user))
+      );
+    } else {
+      // Add new user to the list
+      setUsers((prevUsers) => [...prevUsers, convertedUser]);
+    }
+  };
+  
 
   // Handle Edit Button Click
   const handleEditClick = (user: IUser) => {
@@ -145,12 +192,13 @@ const AllUsersContent: React.FC<AllUsersContentProps> = ({ clientId }) => {
           onClose={() => setIsEditFormVisible(false)}
           existingUser={selectedUser}
           clientId={clientId}
+          onUserSubmit={handleUserSubmit}  
         />
       )}
 
       {/* Add User Form */}
       {isAddFormVisible && (
-        <AddUserForm onClose={() => setIsAddFormVisible(false)} clientId={clientId} />
+        <AddUserForm onClose={() => setIsAddFormVisible(false)} clientId={clientId}  onUserSubmit={handleUserSubmit}   />
       )}
     </div>
   );

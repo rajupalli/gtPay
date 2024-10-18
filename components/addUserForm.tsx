@@ -23,12 +23,14 @@ interface AddUserFormProps {
   onClose: () => void;
   existingUser?: IUser | ClientAdmin | null;
   clientId: string;
+  onUserSubmit: (user: IUser | ClientAdmin) => void;
 }
 
 const AddUserForm: React.FC<AddUserFormProps> = ({
   onClose,
   existingUser,
   clientId,
+  onUserSubmit
 }) => {
   const roleOptions =
     clientId === "superAdmin"
@@ -96,28 +98,30 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
     setIsSubmitting(true); // Indicate form is submitting
 
     try {
-      // Choose API route based on whether we are adding or editing
-      const apiUrl = clientId === "superAdmin" 
-        ? `/api/user${existingUser ? `/${existingUser.id}` : ""}` 
-        : `/api/ClientAdmin${existingUser ? `/${existingUser.id}` : ""}`;
-      
-      const method = existingUser ? "PUT" : "POST"; // Use PUT for editing, POST for adding
+     // Construct API URL for both adding and editing (URL remains the same)
+          const apiUrl = clientId === "superAdmin" 
+          ? `/api/user`  // Same URL for both POST and PUT
+          : `/api/ClientAdmin`;
 
-      console.log(formData);
-      console.log(apiUrl);
+          const method = existingUser ? "PUT" : "POST"; // Use PUT for editing, POST for adding
 
-      // Make the API request
-      const response = await fetch(apiUrl, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          type: formData.role,
-          clientId,
-        }),
-      });
+          console.log("Form Data:", formData);
+          console.log("API URL:", apiUrl);
+
+          // Make the API request
+          const response = await fetch(apiUrl, {
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            id: existingUser?.id, // Pass the ID in the body if updating
+            type: formData.role,
+            clientId,
+          }),
+          });
+   
 
       // Handle non-OK responses
       if (!response.ok) {
@@ -127,13 +131,20 @@ const AddUserForm: React.FC<AddUserFormProps> = ({
 
       // Handle successful response
       const result = await response.json();
+      console.log("hello");
+      console.log(result.user);
+      onUserSubmit(result.user);
+
+      
       console.log("User operation successful:", result);
-      alert(`User ${existingUser ? "updated" : "added"} successfully!`);
+     // alert(`User ${existingUser ? "updated" : "added"} successfully!`);
     } catch (error: any) {
+      
       console.error("Failed to process user:", error);
       alert(`Failed to ${existingUser ? "update" : "add"} user: ` + error.message);
     } finally {
-      setIsSubmitting(false); // Stop submission indicator
+      setIsSubmitting(false);
+       // Stop submission indicator
       onClose(); // Close the form modal
     }
   };
