@@ -24,12 +24,13 @@ export async function GET(request: NextRequest) {
     if(clientId==="superAdmin"){
         clientId=userId;
     }
-    // First, search in the 'users' collection
+    
     const user = await UserModel.findOne({ clientId });
-    console.log(user);
+    
+    if(user._id==userId || clientId==="superAdmin"){
     if (user) {
       console.log(user.appPassword);
-      // If user is found in 'users', return the response
+     
       return NextResponse.json({
         message: 'User found in users collection',
         data: {
@@ -42,26 +43,64 @@ export async function GET(request: NextRequest) {
         },
         status: 200,
       });
-    }
+    }}else{
 
-    // If not found in 'users', search in the 'clients' collection within 'ClientAdmin'
-    const client = await ClientModel.findOne({ clientId, 'ClientAdmin.userId': userId }, { 'ClientAdmin.$': 1 });
+      const client = await ClientModel.findOne({ clientId: clientId });
 
-    if (client && client.ClientAdmin && client.ClientAdmin.length > 0) {
-      const clientAdmin = client.ClientAdmin[0];
-      // If user is found in 'ClientAdmin', return the response
-      return NextResponse.json({
-        message: 'User found in clients collection (ClientAdmin)',
-        data: {
-          userName: clientAdmin.userName,
-          clientId: clientId,
-          role: clientAdmin.role,
-          mobileNumber: clientAdmin.mobileNumber,
-        },
-        status: 200,
-      });
-    }
+if (client && client.ClientAdmin && client.ClientAdmin.length > 0) {
+  // Find the specific ClientAdmin with the matching _id (userId)
+  const clientAdmin = client.ClientAdmin.find((admin: any) => admin._id.toString() === userId.toString());
 
+  if (clientAdmin) {
+    console.log("Found ClientAdmin: ", clientAdmin);
+    return NextResponse.json({
+      message: 'User found in clients collection (ClientAdmin)',
+      data: {
+        userName: clientAdmin.userName,
+        clientId: clientAdmin.clientId,
+        role: clientAdmin.type,
+        mobileNumber: clientAdmin.phoneNumber,
+        appPassword:"",
+        companyName:client.companyName
+      },
+      status: 200,
+    });
+  } else {
+    console.log("ClientAdmin with the given _id not found.");
+  }
+} else {
+  console.log("Client or ClientAdmin not found.");
+}
+
+
+    // // If not found in 'users', search in the 'clients' collection within 'ClientAdmin'
+    // const client = await ClientModel.findOne(
+    //   {
+    //     clientId: clientId,
+    //     'ClientAdmin._id': userId
+    //   },
+    //   {
+    //     'ClientAdmin.$': 1 // This will return only the matching element in the ClientAdmin array
+    //   }
+    // );
+    
+    
+    // console.log(client); 
+    // if (client && client.ClientAdmin && client.ClientAdmin.length > 0) {
+    //   const clientAdmin = client.ClientAdmin[0];
+    //   // If user is found in 'ClientAdmin', return the response
+      // return NextResponse.json({
+      //   message: 'User found in clients collection (ClientAdmin)',
+      //   data: {
+      //     userName: clientAdmin.userName,
+      //     clientId: clientId,
+      //     role: clientAdmin.role,
+      //     mobileNumber: clientAdmin.mobileNumber,
+      //   },
+      //   status: 200,
+      // });
+    // }
+  }
     // If user is not found in either collection
     return NextResponse.json(
       { message: 'User not found in both users and ClientAdmin', data: [] },
